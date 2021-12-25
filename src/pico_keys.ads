@@ -1,0 +1,69 @@
+with System;
+
+with RP.DMA;
+with RP.Clock;
+
+package Pico_Keys is
+   pragma Elaborate_Body;
+
+   subtype Step_Count is Integer range 1 .. 32;
+
+   type Time_Div is (Div_4, Div_8, Div_16, Div_32);
+
+   type Button_ID is (Btn_C,
+                      Btn_Cs,
+                      Btn_D,
+                      Btn_Ds,
+                      Btn_E,
+                      Btn_F,
+                      Btn_Fs,
+                      Btn_G,
+                      Btn_Gs,
+                      Btn_A,
+                      Btn_As,
+                      Btn_B,
+                      Btn_C2,
+                      Btn_C2s,
+                      Btn_D2,
+                      Btn_D2s,
+                      Btn_E2,
+                      Btn_Func
+                     );
+
+   subtype Note_Button_ID is Button_ID range Btn_C .. Btn_E2;
+
+   Btn_Oct_Minus : constant Button_ID := Btn_Cs;
+   Btn_Oct_Plus  : constant Button_ID := Btn_Ds;
+   Btn_Chan_Minus : constant Button_ID := Btn_C2s;
+   Btn_Chan_Plus  : constant Button_ID := Btn_D2s;
+   Btn_BPM_Minus : constant Button_ID := Btn_D2;
+   Btn_BPM_Plus  : constant Button_ID := Btn_E2;
+
+   Btn_Arp  : constant Button_ID := Btn_Fs;
+   Btn_Rec  : constant Button_ID := Btn_Gs;
+   Btn_Play : constant Button_ID := Btn_As;
+
+   Btn_Generator_1 : constant Button_ID := Btn_C;
+   Btn_Generator_2 : constant Button_ID := Btn_D;
+   Btn_Generator_3 : constant Button_ID := Btn_E;
+   Btn_Generator_4 : constant Button_ID := Btn_F;
+
+   Btn_Arp_Up        : constant Button_ID := Btn_C;
+   Btn_Arp_Down      : constant Button_ID := Btn_D;
+   Btn_Arp_Up_N_Down : constant Button_ID := Btn_E;
+   Btn_Arp_Order     : constant Button_ID := Btn_F;
+
+   Btn_Beat_4th  : constant Button_ID := Btn_G;
+   Btn_Beat_8th  : constant Button_ID := Btn_A;
+   Btn_Beat_16th : constant Button_ID := Btn_B;
+   Btn_Beat_32nd : constant Button_ID := Btn_C2;
+
+   LED_PIO_DMA : constant RP.DMA.DMA_Channel_Id := 1;
+   UART_TX_DMA : constant RP.DMA.DMA_Channel_Id := 2;
+
+   procedure Last_Chance_Handler (Msg : System.Address; Line : Integer);
+   pragma Export (C, Last_Chance_Handler, "__gnat_last_chance_handler");
+
+   XOSC_Frequency : RP.Clock.XOSC_Hertz := 12_000_000;
+
+end Pico_Keys;

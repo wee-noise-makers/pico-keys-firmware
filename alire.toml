@@ -1,0 +1,23 @@
+name = "pico_keys_firmware"
+description = "Firmware for the PICO Keys MIDI keyboard"
+version = "0.1.0"
+
+authors = ["Fabien Chouteau"]
+maintainers = ["Fabien Chouteau <fabien.chouteau@gmail.com>"]
+maintainers-logins = ["Fabien-Chouteau"]
+
+executables = ["pico_keys_firmware"]
+
+[[depends-on]]
+rp2040_hal = "~0.6.0"
+gnat_arm_elf = "^11.2.2"
+
+[[pins]]
+rp2040_hal = { url='https://github.com/JeremyGrosser/rp2040_hal' }
+
+[configuration.values]
+rp2040_hal.Flash_Chip = "generic_qspi"
+[[depends-on]]  # Added by alr
+hal = "~0.1.0"  # Added by alr
+[[depends-on]]  # Added by alr
+bbqueue = "~0.3.0"  # Added by alr
