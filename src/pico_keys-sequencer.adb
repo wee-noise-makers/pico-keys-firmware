@@ -2,6 +2,13 @@ with HAL; use HAL;
 
 package body Pico_Keys.Sequencer is
 
+   overriding
+   procedure Play (This : in out Instance) is
+   begin
+      Parent (This).Play;
+      This.Current_Step := 0;
+   end Play;
+
    --------------
    -- Add_Note --
    --------------
@@ -51,17 +58,17 @@ package body Pico_Keys.Sequencer is
       Add_Note (This.Steps (This.Edit_Step), K);
    end Falling;
 
-   -------------
-   -- Raising --
-   -------------
+   ------------
+   -- Rising --
+   ------------
 
    overriding
-   procedure Raising (This : in out Instance;
-                      K    :        MIDI.MIDI_Key)
+   procedure Rising (This : in out Instance;
+                     K    :        MIDI.MIDI_Key)
    is
    begin
       null;
-   end Raising;
+   end Rising;
 
    ---------------------
    -- No_Keys_Pressed --

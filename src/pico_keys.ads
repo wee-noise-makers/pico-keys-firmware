@@ -10,6 +10,8 @@ package Pico_Keys is
 
    type Time_Div is (Div_4, Div_8, Div_16, Div_32);
 
+   type Gen_Id is range 1 .. 3;
+
    type Button_ID is (Btn_C,
                       Btn_Cs,
                       Btn_D,
@@ -39,16 +41,16 @@ package Pico_Keys is
    Btn_BPM_Minus : constant Button_ID := Btn_D2;
    Btn_BPM_Plus  : constant Button_ID := Btn_E2;
 
-   Btn_Arp      : constant Button_ID := Btn_Fs;
-   Btn_Seq      : constant Button_ID := Btn_Gs;
-   Btn_Keyboard : constant Button_ID := Btn_As;
+   Btn_G1 : constant Button_ID := Btn_Fs;
+   Btn_G2 : constant Button_ID := Btn_Gs;
+   Btn_G3 : constant Button_ID := Btn_As;
 
-   Btn_Arp_Mode : constant Button_ID := Btn_C;
-   Btn_Clear    : constant Button_ID := Btn_D;
-   Btn_Rest     : constant Button_ID := Btn_E;
-   Btn_Tie      : constant Button_ID := Btn_F;
-
+   Btn_Arp_Mode  : constant Button_ID := Btn_C;
+   Btn_Clear     : constant Button_ID := Btn_D;
+   Btn_Rest      : constant Button_ID := Btn_E;
+   Btn_Tie       : constant Button_ID := Btn_F;
    Btn_Time_Div  : constant Button_ID := Btn_G;
+   Btn_Meta_Mode : constant Button_ID := Btn_A;
 
    LED_PIO_DMA : constant RP.DMA.DMA_Channel_Id := 1;
    UART_TX_DMA : constant RP.DMA.DMA_Channel_Id := 2;

@@ -10,15 +10,15 @@ package body Pico_Keys.Keyboard is
       This.Note_On (K);
    end Falling;
 
-   -------------
-   -- Raising --
-   -------------
+   ------------
+   -- Rising --
+   ------------
 
    overriding
-   procedure Raising (This : in out Instance; K : MIDI.MIDI_Key) is
+   procedure Rising (This : in out Instance; K : MIDI.MIDI_Key) is
    begin
       This.Note_Off (K);
-   end Raising;
+   end Rising;
 
    ---------------------
    -- No_Keys_Pressed --

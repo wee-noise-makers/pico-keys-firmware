@@ -70,14 +70,14 @@ package body Pico_Keys.Buttons is
       return State (ID) and then not Prev_State (ID);
    end Falling;
 
-   -------------
-   -- Raising --
-   -------------
+   ------------
+   -- Rising --
+   ------------
 
-   function Raising (ID : Button_ID) return Boolean is
+   function Rising (ID : Button_ID) return Boolean is
    begin
       return not State (ID) and then Prev_State (ID);
-   end Raising;
+   end Rising;
 
 begin
    Initialize;

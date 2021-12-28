@@ -11,8 +11,8 @@ package Pico_Keys.Keyboard is
                       K    :        MIDI.MIDI_Key);
 
    overriding
-   procedure Raising (This : in out Instance;
-                      K    :        MIDI.MIDI_Key);
+   procedure Rising (This : in out Instance;
+                     K    :        MIDI.MIDI_Key);
 
    overriding
    procedure No_Keys_Pressed (This : in out Instance);

@@ -64,7 +64,7 @@ package body Pico_Keys.Generator is
 
    procedure Toggle_play (This : in out Instance) is
    begin
-      if This.Playing then
+      if Dispatch (This).Playing then
          Dispatch (This).Stop;
       else
          Dispatch (This).Play;

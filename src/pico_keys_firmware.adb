@@ -6,35 +6,30 @@ with Pico_Keys.LEDs;
 with Pico_Keys.Buttons;
 with Pico_Keys.MIDI;
 with Pico_Keys.MIDI.Serial;
-with Pico_Keys.Arpeggiator;
-with Pico_Keys.Sequencer;
-with Pico_Keys.Keyboard;
+with Pico_Keys.Meta_Gen; use Pico_Keys.Meta_Gen;
 with Pico_Keys.Generator;
+with Pico_Keys.Arpeggiator;
+
+with Pico_Keys.Generator_Instances; use Pico_Keys.Generator_Instances;
 
 with RP.Device;
 with RP.Timer; use RP.Timer;
 
 procedure Pico_Keys_Firmware is
 
-   type Main_Mode_Kind is (Key, Arp, Seq);
+   Current_Gen : Gen_Id := Gen_Id'First;
 
-   Main_Mode : Main_Mode_Kind := Key;
-
-   Key_Gen : aliased Keyboard.Instance;
-   Arp_Gen : aliased Arpeggiator.Instance;
-   Seq_Gen : aliased Sequencer.Instance;
+   Gen_Btn : array (Gen_Id) of Pico_Keys.Button_ID
+     := (1 => Btn_G1,
+         2 => Btn_G2,
+         3 => Btn_G3);
 
    Arp_Hue      : constant LEDS.Hue := LEDs.Blue;
    Beat_Hue     : constant LEDS.Hue := LEDs.Green;
    Seq_Hue      : constant LEDS.Hue := LEDs.Red;
    Keyboard_Hue : constant LEDS.Hue := LEDs.Violet;
 
-   Generators : array (Main_Mode_Kind) of Pico_Keys.Generator.Any_Acc
-     := (Key => Key_Gen'Unrestricted_Access,
-         Arp => Arp_Gen'Unrestricted_Access,
-         Seq => Seq_Gen'Unrestricted_Access);
-
-   Gen_Hue : array (Main_Mode_Kind) of LEDs.Hue
+   Gen_Hue : constant array (Pico_Keys.Meta_Gen.Meta_Mode_Kind) of LEDs.Hue
      := (Key => Keyboard_Hue,
          Arp => Arp_Hue,
          Seq => Seq_Hue);
@@ -48,43 +43,42 @@ procedure Pico_Keys_Firmware is
    Next_Trig : RP.Timer.Time := RP.Timer.Clock;
 
    Step : Step_Count := Step_Count'First;
-
-   procedure Switch_To_Mode (M : Main_Mode_Kind) is
-   begin
-      if M /= Main_Mode then
-         Generators (Main_Mode).Leave_Focus;
-         Main_Mode := M;
-         Generators (Main_Mode).Enter_Focus;
-      end if;
-   end Switch_To_Mode;
 begin
+
+   --  Set Gen 2 to seq
+   Generators (2).Next_Meta;
+
+   --  Set Gen 3 to arp
+   Generators (3).Next_Meta;
+   Generators (3).Next_Meta;
+
    loop
       LEDs.Clear;
       Buttons.Scan;
 
-      LEDs.Set_Hue (Btn_Func, Gen_Hue (Main_Mode),
-                    Effect => (if Generators (Main_Mode).Playing
+      LEDs.Set_Hue (Btn_Func, Gen_Hue (Generators (Current_Gen).Current_Mode),
+                    Effect => (if Generators (Current_Gen).Playing
                                then LEDs.Blink_Fast
                                else LEDs.None));
 
       if Buttons.Pressed (Btn_Func) then
 
          if Buttons.Falling (Btn_Func) then
-            Generators (Main_Mode).Enter_Func_Mode;
+            Generators (Current_Gen).Enter_Func_Mode;
          end if;
 
-         Generators (Main_Mode).No_Keys_Pressed;
+         Generators (Current_Gen).No_Keys_Pressed;
 
          -- Beat LED
-         if Generators (Main_Mode).Do_Trigger (Step) then
+         if Generators (Current_Gen).Do_Trigger (Step) then
             LEDS.Set_Hue (Btn_Time_Div, Beat_Hue);
          end if;
 
          --  MIDI channel +/-
          if Buttons.Falling (Btn_Chan_Plus) then
-            Generators (Main_Mode).Next_Channel;
+            Generators (Current_Gen).Next_Channel;
          elsif Buttons.Falling (Btn_Chan_Minus) then
-            Generators (Main_Mode).Prev_Channel;
+            Generators (Current_Gen).Prev_Channel;
          end if;
 
          --  Base note +/-
@@ -103,45 +97,40 @@ begin
 
          --  ARP Mode select
          if Buttons.Falling (Btn_Arp_Mode) then
-            Arp_Gen.Next_Mode;
+            Generators (Current_Gen).Next_Arp_Mode;
          end if;
 
          --  Time Div select
          if Buttons.Falling (Btn_Time_Div) then
-            Generators (Main_Mode).Next_Division;
+            Generators (Current_Gen).Next_Division;
          end if;
 
+         --  Meta mode select
+         if Buttons.Falling (Btn_Meta_Mode) then
+            Generators (Current_Gen).Next_Meta;
+         end if;
+
+         --  Clear
          if Buttons.Falling (Btn_Clear) then
-            Generators (Main_Mode).Clear;
+            Generators (Current_Gen).Clear;
          end if;
 
-         case Main_Mode is
+         LEDs.Set_Hue (Gen_Btn (Current_Gen),
+                       Gen_Hue (Generators (Current_Gen).Current_Mode),
+                       Effect => (if Generators (Current_Gen).Playing
+                                  then LEDs.Blink_Fast
+                                  else LEDs.None));
+
+         case Generators (Current_Gen).Current_Mode is
          when Key =>
 
-            LEDs.Set_Hue (Btn_Keyboard, Keyboard_Hue,
-                          Effect => (if Key_Gen.Playing
-                                     then LEDs.Blink_Fast
-                                     else LEDs.None));
-
-            if Buttons.Falling (Btn_Keyboard) then
-               Key_Gen.Toggle_Play;
-            elsif Buttons.Falling (Btn_Arp) then
-               Switch_To_Mode (Arp);
-            elsif Buttons.Falling (Btn_Seq) then
-               Switch_To_Mode (Seq);
-            end if;
+            null;
 
          when Arp =>
-
-            LEDs.Set_Hue (Btn_Arp, Arp_Hue,
-                          Effect => (if Arp_Gen.Playing
-                                     then LEDs.Blink_Fast
-                                     else LEDs.None));
-
             LEDs.Set_Hue (Btn_Clear, Arp_Hue);
 
             --  ARP Mode LED
-            case Arp_Gen.Mode is
+            case Generators (Current_Gen).Arp_Mode is
             when Arpeggiator.Up =>
                LEDS.Set_Hue (Btn_Arp_Mode, LEDs.Red);
             when Arpeggiator.Down =>
@@ -152,48 +141,34 @@ begin
                LEDS.Set_Hue (Btn_Arp_Mode, LEDs.Violet);
             end case;
 
-            if Buttons.Falling (Btn_Clear) then
-               Arp_Gen.Clear;
-            end if;
-
-            if Buttons.Falling (Btn_Arp) then
-               Arp_Gen.Toggle_Play;
-            elsif Buttons.Falling (Btn_Seq) then
-               Switch_To_Mode (Seq);
-            elsif Buttons.Falling (Btn_Keyboard) then
-               Switch_To_Mode (Key);
-            end if;
-
          when Seq =>
-
-            LEDs.Set_Hue (Btn_Seq, Seq_Hue,
-                          Effect => (if Seq_Gen.Playing
-                                     then LEDs.Blink_Fast
-                                     else LEDs.None));
-
             LEDs.Set_Hue (Btn_Rest, Seq_Hue);
             LEDs.Set_Hue (Btn_Tie, Seq_Hue);
             LEDs.Set_Hue (Btn_Clear, Seq_Hue);
 
             if Buttons.Falling (Btn_Rest) then
-               Seq_Gen.Add_Rest;
+               Generators (Current_Gen).Add_Rest;
             end if;
 
             if Buttons.Falling (Btn_Tie) then
-               Seq_Gen.Add_Tie;
+               Generators (Current_Gen).Add_Tie;
             end if;
 
-            if Buttons.Falling (Btn_Arp) then
-               Switch_To_Mode (Arp);
-            elsif Buttons.Falling (Btn_Seq) then
-               Seq_Gen.Toggle_Play;
-            elsif Buttons.Falling (Btn_Keyboard) then
-               Switch_To_Mode (Key);
-            end if;
          end case;
 
-      else
+         --  Change generator
+         if Buttons.Falling (Gen_Btn (Current_Gen)) then
+            Generators (Current_Gen).Toggle_Play;
+         else
+            Gen_Switch_Loop : for G in Gen_Id loop
+               if Current_Gen /= G and Buttons.Falling (Gen_Btn (G)) then
+                  Current_Gen := G;
+                  exit Gen_Switch_loop;
+               end if;
+            end loop Gen_Switch_Loop;
+         end if;
 
+      else
 
          declare
             Btn_Count : Natural := 0;
@@ -205,22 +180,20 @@ begin
                end if;
 
                if Buttons.Falling (Id) then
-                  Generators (Main_Mode).Falling (Base_Note + Id'Enum_Rep);
+                  Generators (Current_Gen).Falling (Base_Note + Id'Enum_Rep);
 
-               elsif Buttons.Raising (Id) then
-                  Generators (Main_Mode).Raising (Base_Note + Id'Enum_Rep);
+               elsif Buttons.Rising (Id) then
+                  Generators (Current_Gen).Rising (Base_Note + Id'Enum_Rep);
 
                end if;
             end loop;
 
             if Btn_Count = 0 then
-               Generators (Main_Mode).No_Keys_Pressed;
+               Generators (Current_Gen).No_Keys_Pressed;
             end if;
          end;
 
-         LEDs.Set_Hue (Btn_Func, Gen_Hue (Main_Mode));
-
-         case Main_Mode is
+         case Generators (Current_Gen).Current_Mode is
          when Key =>
             for Id in Note_Button_ID loop
                if Buttons.Pressed (Id) then
@@ -230,7 +203,7 @@ begin
 
          when Arp =>
             for Id in Note_Button_ID loop
-               if Arp_Gen.In_Arp (Base_Note + Id'Enum_Rep) then
+               if Generators (Current_Gen).In_Arp (Base_Note + Id'Enum_Rep) then
                   LEDs.Set_Hue (Id, Arp_Hue);
                end if;
             end loop;

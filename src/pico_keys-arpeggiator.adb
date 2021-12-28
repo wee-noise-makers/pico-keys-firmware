@@ -2,6 +2,18 @@ with HAL; use HAL;
 
 package body Pico_Keys.Arpeggiator is
 
+   ----------
+   -- Play --
+   ----------
+
+   overriding
+   procedure Play (This : in out Instance) is
+   begin
+      Parent (This).Play;
+      This.Next_Index := Note_Index'First;
+      This.Last_Note := 0;
+   end Play;
+
    -------------
    -- Falling --
    -------------
@@ -24,17 +36,17 @@ package body Pico_Keys.Arpeggiator is
       end if;
    end Falling;
 
-   -------------
-   -- Raising --
-   -------------
+   ------------
+   -- Rising --
+   ------------
 
    overriding
-   procedure Raising (This : in out Instance;
+   procedure Rising (This : in out Instance;
                       K    :        MIDI.MIDI_Key)
    is
    begin
       null;
-   end Raising;
+   end Rising;
 
    ---------------------
    -- No_Keys_Pressed --

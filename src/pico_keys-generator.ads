@@ -26,10 +26,10 @@ package Pico_Keys.Generator is
    is abstract;
    --  Call this procedure when a MIDI Key is falling
 
-   procedure Raising (This : in out Instance;
-                      K    :        MIDI.MIDI_Key)
+   procedure Rising (This : in out Instance;
+                     K    :        MIDI.MIDI_Key)
    is abstract;
-   --  Call this procedure when a MIDI Key is raising
+   --  Call this procedure when a MIDI Key is rising
 
    procedure No_Keys_Pressed (This : in out Instance)
    is abstract;
