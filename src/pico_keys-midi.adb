@@ -56,4 +56,36 @@ package body Pico_Keys.MIDI is
       Send ((Note_Off, Chan, K, MIDI_Data'Last));
    end Send_Note_Off;
 
+   ---------------------
+   -- Send_Clock_Tick --
+   ---------------------
+
+   procedure Send_UInt8 (V : UInt8) is
+      use BBqueue;
+      use BBqueue.Buffers;
+
+      WG : BBqueue.Buffers.Write_Grant;
+   begin
+      Grant (MIDI_Serial_Queue, WG, Size => 1);
+
+      if State (WG) = Valid then
+         declare
+            Addr : constant System.Address := Slice (WG).Addr;
+            Dst : UInt8 with Import, Address => Addr;
+         begin
+            Dst := V;
+         end;
+         Commit (MIDI_Serial_Queue, WG);
+      end if;
+   end Send_UInt8;
+
+   ---------------------
+   -- Send_Clock_Tick --
+   ---------------------
+
+   procedure Send_Clock_Tick is
+   begin
+      Send_UInt8 (2#11111000#);
+   end Send_Clock_Tick;
+
 end Pico_Keys.MIDI;

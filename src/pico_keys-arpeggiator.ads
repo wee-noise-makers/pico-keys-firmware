@@ -29,6 +29,7 @@ package Pico_Keys.Arpeggiator is
    overriding
    procedure Trigger (This : in out Instance; Step : Step_Count);
 
+   overriding
    procedure Clear (This : in out Instance) ;
 
    function In_Arp (This : Instance;
@@ -39,8 +40,8 @@ package Pico_Keys.Arpeggiator is
 
    type Arp_Mode is (Up, Down, Up_N_Down, Order);
 
-   procedure Set_Mode (This : in out Instance; M : Arp_Mode);
    function Mode (This : Instance) return Arp_Mode;
+   procedure Next_Mode (This : in out Instance);
 
 private
 

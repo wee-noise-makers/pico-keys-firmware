@@ -16,6 +16,9 @@ package Pico_Keys.Generator is
    procedure Stop (This : in out Instance);
    procedure Toggle_play (This : in out Instance);
 
+   procedure Clear (This : in out Instance)
+   is abstract;
+
    -- Keys --
 
    procedure Falling (This : in out Instance;
@@ -41,7 +44,7 @@ package Pico_Keys.Generator is
    -- Time division --
 
    function Division (This : Instance) return Time_Div;
-   procedure Set_Division (This : in out Instance; Div : Time_Div);
+   procedure Next_Division (This : in out Instance);
    function Do_Trigger (This : Instance; Step : Step_Count) return Boolean;
 
    -- Events --

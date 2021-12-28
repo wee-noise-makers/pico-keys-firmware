@@ -6,7 +6,7 @@ with RP.Clock;
 package Pico_Keys is
    pragma Elaborate_Body;
 
-   subtype Step_Count is Integer range 1 .. 32;
+   subtype Step_Count is Integer range 1 .. 24;
 
    type Time_Div is (Div_4, Div_8, Div_16, Div_32);
 
@@ -39,24 +39,16 @@ package Pico_Keys is
    Btn_BPM_Minus : constant Button_ID := Btn_D2;
    Btn_BPM_Plus  : constant Button_ID := Btn_E2;
 
-   Btn_Arp  : constant Button_ID := Btn_Fs;
-   Btn_Rec  : constant Button_ID := Btn_Gs;
-   Btn_Play : constant Button_ID := Btn_As;
+   Btn_Arp      : constant Button_ID := Btn_Fs;
+   Btn_Seq      : constant Button_ID := Btn_Gs;
+   Btn_Keyboard : constant Button_ID := Btn_As;
 
-   Btn_Generator_1 : constant Button_ID := Btn_C;
-   Btn_Generator_2 : constant Button_ID := Btn_D;
-   Btn_Generator_3 : constant Button_ID := Btn_E;
-   Btn_Generator_4 : constant Button_ID := Btn_F;
+   Btn_Arp_Mode : constant Button_ID := Btn_C;
+   Btn_Clear    : constant Button_ID := Btn_D;
+   Btn_Rest     : constant Button_ID := Btn_E;
+   Btn_Tie      : constant Button_ID := Btn_F;
 
-   Btn_Arp_Up        : constant Button_ID := Btn_C;
-   Btn_Arp_Down      : constant Button_ID := Btn_D;
-   Btn_Arp_Up_N_Down : constant Button_ID := Btn_E;
-   Btn_Arp_Order     : constant Button_ID := Btn_F;
-
-   Btn_Beat_4th  : constant Button_ID := Btn_G;
-   Btn_Beat_8th  : constant Button_ID := Btn_A;
-   Btn_Beat_16th : constant Button_ID := Btn_B;
-   Btn_Beat_32nd : constant Button_ID := Btn_C2;
+   Btn_Time_Div  : constant Button_ID := Btn_G;
 
    LED_PIO_DMA : constant RP.DMA.DMA_Channel_Id := 1;
    UART_TX_DMA : constant RP.DMA.DMA_Channel_Id := 2;

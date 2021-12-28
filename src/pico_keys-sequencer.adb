@@ -1,3 +1,5 @@
+with HAL; use HAL;
+
 package body Pico_Keys.Sequencer is
 
    --------------
@@ -19,7 +21,9 @@ package body Pico_Keys.Sequencer is
    procedure Play_Notes (This : in out Instance; S : Step_Rec) is
    begin
       for K of S.Notes (Note_Index'First .. S.Count) loop
-         This.Note_On (K);
+         if K /= 0 then
+            This.Note_On (K);
+         end if;
       end loop;
    end Play_Notes;
 
@@ -116,9 +120,9 @@ package body Pico_Keys.Sequencer is
          return;
       end if;
 
-      This.Release_All;
 
       if not This.Playing or else This.Edit_Step < Step_Index'First then
+         This.Release_All;
          return;
       end if;
 
@@ -128,7 +132,11 @@ package body Pico_Keys.Sequencer is
          This.Current_Step := Step_Index'First;
       end if;
 
-      Play_Notes (This, This.Steps (This.Current_Step));
+      if not This.Steps (This.Current_Step).Tie then
+         This.Release_All;
+         Play_Notes (This, This.Steps (This.Current_Step));
+      end if;
+
 
    end Trigger;
 
@@ -139,9 +147,37 @@ package body Pico_Keys.Sequencer is
    procedure Clear (This : in out Instance) is
    begin
       This.Edit_Step := Step_Index'First - 1;
-      This.Steps := (others => (Count => 0, others => <>));
+      This.Steps := (others => (Count => 0, Tie => False, others => <>));
       This.Current_Step := 0;
       This.Waiting_For_Notes := False;
    end Clear;
+
+   --------------
+   -- Add_Rest --
+   --------------
+
+   procedure Add_Rest (This : in out Instance) is
+   begin
+      This.Waiting_For_Notes := False;
+      This.Falling (0);
+      This.Waiting_For_Notes := False;
+   end Add_Rest;
+
+   -------------
+   -- Add_Tie --
+   -------------
+
+   procedure Add_Tie (This : in out Instance) is
+   begin
+      if This.Edit_Step >= Step_Index'Last then
+         return;
+      end if;
+
+      if This.Edit_Step /= Step_Index'Last then
+         This.Edit_Step := This.Edit_Step + 1;
+         This.Steps (This.Edit_Step).Tie := True;
+         This.Waiting_For_Notes := False;
+      end if;
+   end Add_Tie;
 
 end Pico_Keys.Sequencer;

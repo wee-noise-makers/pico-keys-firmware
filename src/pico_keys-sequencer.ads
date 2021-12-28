@@ -29,7 +29,11 @@ package Pico_Keys.Sequencer is
    overriding
    procedure Trigger (This : in out Instance; Step : Step_Count);
 
+   overriding
    procedure Clear (This : in out Instance);
+
+   procedure Add_Rest (This : in out Instance);
+   procedure Add_Tie (This : in out Instance);
 
 private
 
@@ -44,6 +48,7 @@ private
    type Step_Rec is record
       Count : Natural := 0;
       Notes : Note_Array;
+      Tie   : Boolean := False;
    end record;
 
    type Step_Array is array (Step_Index) of Step_Rec;

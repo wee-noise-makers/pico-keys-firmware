@@ -29,6 +29,10 @@ package Pico_Keys.Keyboard is
    overriding
    procedure Trigger (This : in out Instance; Step : Step_Count);
 
+   overriding
+   procedure Clear (This : in out Instance)
+   is null;
+
 private
 
    type Instance is new Parent with null record;

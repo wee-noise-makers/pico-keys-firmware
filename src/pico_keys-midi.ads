@@ -61,7 +61,9 @@ package Pico_Keys.MIDI is
                            Chan : MIDI_Channel);
 
    procedure Send_Note_Off (K : MIDI_Key;
-                           Chan : MIDI_Channel);
+                            Chan : MIDI_Channel);
+
+   procedure Send_Clock_Tick;
 
    type Octaves is new UInt8 range 1 .. 8;
    type Notes is (C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B);

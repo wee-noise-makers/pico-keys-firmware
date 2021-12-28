@@ -152,6 +152,7 @@ package body Pico_Keys.Arpeggiator is
    -- Clear --
    -----------
 
+   overriding
    procedure Clear (This : in out Instance) is
    begin
       This.Next_Index := Note_Index'First;
@@ -171,14 +172,18 @@ package body Pico_Keys.Arpeggiator is
       return This.Notes_In_Arp (K);
    end In_Arp;
 
-   --------------
-   -- Set_Mode --
-   --------------
+   ---------------
+   -- Next_Mode --
+   ---------------
 
-   procedure Set_Mode (This : in out Instance; M : Arp_Mode) is
+   procedure Next_Mode (This : in out Instance) is
    begin
-      This.Current_Mode := M;
-   end Set_Mode;
+      if This.Current_Mode /= Arp_Mode'Last then
+         This.Current_Mode := Arp_Mode'Succ (This.Current_Mode);
+      else
+         This.Current_Mode := Arp_Mode'First;
+      end if;
+   end Next_Mode;
 
    ----------
    -- Mode --

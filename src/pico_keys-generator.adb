@@ -7,37 +7,29 @@ package body Pico_Keys.Generator is
 
    Trig_Map : array (Step_Count, Time_Div) of Boolean
      := (1  => (T, T, T, T),
-         2  => (F, F, F, T),
-         3  => (F, F, T, T),
+         2  => (F, F, F, F),
+         3  => (F, F, F, F),
          4  => (F, F, F, T),
-         5  => (F, T, T, T),
-         6  => (F, F, F, T),
+         5  => (F, F, F, F),
+         6  => (F, F, F, F),
          7  => (F, F, T, T),
-         8  => (F, F, F, T),
-         9  => (T, T, T, T),
+         8  => (F, F, F, F),
+         9  => (F, F, F, F),
          10 => (F, F, F, T),
-         11 => (F, F, T, T),
-         12 => (F, F, F, T),
+         11 => (F, F, F, F),
+         12 => (F, F, F, F),
          13 => (F, T, T, T),
-         14 => (F, F, F, T),
-         15 => (F, F, T, T),
+         14 => (F, F, F, F),
+         15 => (F, F, F, F),
          16 => (F, F, F, T),
-         17 => (T, T, T, T),
-         18 => (F, F, F, T),
+         17 => (F, F, F, F),
+         18 => (F, F, F, F),
          19 => (F, F, T, T),
-         20 => (F, F, F, T),
-         21 => (F, T, T, T),
+         20 => (F, F, F, F),
+         21 => (F, F, F, F),
          22 => (F, F, F, T),
-         23 => (F, F, T, T),
-         24 => (F, F, F, T),
-         25 => (T, T, T, T),
-         26 => (F, F, F, T),
-         27 => (F, F, T, T),
-         28 => (F, F, F, T),
-         29 => (F, T, T, T),
-         30 => (F, F, F, T),
-         31 => (F, F, T, T),
-         32 => (F, F, F, T));
+         23 => (F, F, F, F),
+         24 => (F, F, F, F));
 
    subtype Dispatch is Instance'Class;
 
@@ -119,14 +111,18 @@ package body Pico_Keys.Generator is
       return This.Div;
    end Division;
 
-   ------------------
-   -- Set_Division --
-   ------------------
+   -------------------
+   -- Next_Division --
+   -------------------
 
-   procedure Set_Division (This : in out Instance; Div : Time_Div) is
+   procedure Next_Division (This : in out Instance) is
    begin
-      This.Div := Div;
-   end Set_Division;
+      if This.Div /= Time_Div'Last then
+         This.Div := Time_Div'Succ (This.Div);
+      else
+         This.Div := Time_Div'First;
+      end if;
+   end Next_Division;
 
    ----------------
    -- Do_Trigger --
