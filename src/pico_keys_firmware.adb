@@ -158,7 +158,27 @@ begin
 
          --  Change generator
          if Buttons.Falling (Gen_Btn (Current_Gen)) then
-            Generators (Current_Gen).Toggle_Play;
+
+            declare
+               Playing_Before, Playing_After : Boolean;
+            begin
+
+               Playing_Before := (for some G of Generators => G.Playing);
+
+               Generators (Current_Gen).Toggle_Play;
+
+               Playing_After := (for some G of Generators => G.Playing);
+
+               if Playing_Before and then not Playing_After then
+                  --  The last playing generator was stopped
+                  MIDI.Send_Stop;
+
+               elsif not Playing_Before and then Playing_After then
+                  --  At least one generator was started
+                  MIDI.Send_Start;
+                  Step := Step_Count'First;
+               end if;
+            end;
          else
             Gen_Switch_Loop : for G in Gen_Id loop
                if Current_Gen /= G and Buttons.Falling (Gen_Btn (G)) then

@@ -14,7 +14,7 @@ package Pico_Keys.Generator is
    function Playing (This : Instance) return Boolean;
    procedure Play (This : in out Instance);
    procedure Stop (This : in out Instance);
-   procedure Toggle_play (This : in out Instance);
+   procedure Toggle_Play (This : in out Instance);
 
    procedure Clear (This : in out Instance)
    is abstract;

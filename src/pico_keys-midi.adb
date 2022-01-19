@@ -88,4 +88,22 @@ package body Pico_Keys.MIDI is
       Send_UInt8 (2#11111000#);
    end Send_Clock_Tick;
 
+   ----------------
+   -- Send_Start --
+   ----------------
+
+   procedure Send_Start is
+   begin
+      Send_UInt8 (2#11111010#);
+   end Send_Start;
+
+   ---------------
+   -- Send_Stop --
+   ---------------
+
+   procedure Send_Stop is
+   begin
+      Send_UInt8 (2#11111100#);
+   end Send_Stop;
+
 end Pico_Keys.MIDI;
