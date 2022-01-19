@@ -1,0 +1,21 @@
+name: Build and test
+on: [pull_request, push]
+
+jobs:
+  linux-build:
+    name: Build and test on Linux
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        gnat_version: [^11]
+        gprbuild_version: [^22]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: alire-project/setup-alire@v1
+      with:
+        toolchain: gprbuild${{ matrix.gprbuild_version }} gnat_native${{ matrix.gnat_version }} --disable-assistant
+
+    - name: Alire build
+      run: alr build
