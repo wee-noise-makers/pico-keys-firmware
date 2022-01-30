@@ -6,9 +6,10 @@ with RP.Clock;
 package Pico_Keys is
    pragma Elaborate_Body;
 
-   subtype Step_Count is Integer range 1 .. 24;
+   subtype Step_Count is Integer range 1 .. 48;
 
-   type Time_Div is (Div_4, Div_8, Div_16, Div_32);
+   type Time_Div is (Div_4, Div_8, Div_16, Div_32,
+                     Div_4T, Div_8T, Div_16T, Div_32T);
 
    type Gen_Id is range 1 .. 3;
 
