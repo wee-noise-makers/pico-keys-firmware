@@ -182,4 +182,21 @@ package body Pico_Keys.Sequencer is
       end if;
    end Add_Tie;
 
+   ------------
+   -- In_Seq --
+   ------------
+
+   function In_Seq (This : Instance) return Note_Array is
+   begin
+      if This.Edit_Step >= Step_Index'Last then
+         return (1 .. 0 => <>);
+      end if;
+
+      declare
+         Step : Step_Rec renames This.Steps (This.Edit_Step);
+      begin
+         return Step.Notes (1 .. Step.Count);
+      end;
+   end In_Seq;
+
 end Pico_Keys.Sequencer;

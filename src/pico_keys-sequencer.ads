@@ -38,19 +38,22 @@ package Pico_Keys.Sequencer is
    procedure Add_Rest (This : in out Instance);
    procedure Add_Tie (This : in out Instance);
 
-private
-
    Number_Of_Steps : constant := 300;
-   Notes_Pre_Step : constant := 20;
+   Notes_Per_Step : constant := 20;
 
    subtype Step_Index is Natural range 1 .. Number_Of_Steps;
-   subtype Note_Index is Natural range 1 .. Notes_Pre_Step;
+   subtype Note_Index is Natural range 1 .. Notes_Per_Step;
 
-   type Note_Array is array (Note_Index) of MIDI.MIDI_Key;
+   type Note_Array is array (Note_Index range <>) of MIDI.MIDI_Key;
+
+   function In_Seq (This : Instance) return Note_Array;
+   --  Return keys part of the current sequencer step
+private
+
 
    type Step_Rec is record
       Count : Natural := 0;
-      Notes : Note_Array;
+      Notes : Note_Array (Note_Index);
       Tie   : Boolean := False;
    end record;
 

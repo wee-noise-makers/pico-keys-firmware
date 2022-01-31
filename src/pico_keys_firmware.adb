@@ -9,6 +9,7 @@ with Pico_Keys.MIDI.Serial;
 with Pico_Keys.Meta_Gen; use Pico_Keys.Meta_Gen;
 with Pico_Keys.Generator;
 with Pico_Keys.Arpeggiator;
+with Pico_Keys.Sequencer;
 
 with Pico_Keys.Generator_Instances; use Pico_Keys.Generator_Instances;
 
@@ -174,10 +175,25 @@ begin
             case Generators (Current_Gen).Current_Mode is
             when Key =>
 
-               null;
+               LEDS.Set_Hue (Btn_Meta_Mode, Seq_Hue);
+
+            when Seq =>
+               LEDs.Set_Hue (Btn_Rest, Seq_Hue);
+               LEDs.Set_Hue (Btn_Tie, Seq_Hue);
+               LEDs.Set_Hue (Btn_Clear, Seq_Hue);
+               LEDS.Set_Hue (Btn_Meta_Mode, Arp_Hue);
+
+               if Buttons.Falling (Btn_Rest) then
+                  Generators (Current_Gen).Add_Rest;
+               end if;
+
+               if Buttons.Falling (Btn_Tie) then
+                  Generators (Current_Gen).Add_Tie;
+               end if;
 
             when Arp =>
-               LEDs.Set_Hue (Btn_Clear, Arp_Hue);
+               LEDs.Set_Hue (Btn_Clear, Keyboard_Hue);
+               LEDS.Set_Hue (Btn_Meta_Mode, Seq_Hue);
 
                --  ARP Mode LED
                case Generators (Current_Gen).Arp_Mode is
@@ -190,19 +206,6 @@ begin
                when Arpeggiator.Order =>
                   LEDS.Set_Hue (Btn_Arp_Mode, LEDs.Violet);
                end case;
-
-            when Seq =>
-               LEDs.Set_Hue (Btn_Rest, Seq_Hue);
-               LEDs.Set_Hue (Btn_Tie, Seq_Hue);
-               LEDs.Set_Hue (Btn_Clear, Seq_Hue);
-
-               if Buttons.Falling (Btn_Rest) then
-                  Generators (Current_Gen).Add_Rest;
-               end if;
-
-               if Buttons.Falling (Btn_Tie) then
-                  Generators (Current_Gen).Add_Tie;
-               end if;
 
             end case;
 
@@ -273,13 +276,26 @@ begin
 
             when Arp =>
                for Id in Note_Button_ID loop
-                  if Generators (Current_Gen).In_Arp (Base_Note + Id'Enum_Rep) then
+                  if Generators (Current_Gen).In_Arp (Base_Note + Id'Enum_Rep)
+                  then
                      LEDs.Set_Hue (Id, Arp_Hue);
                   end if;
                end loop;
 
             when Seq =>
-               null;
+               declare
+                  Keys : constant Sequencer.Note_Array :=
+                    Generators (Current_Gen).In_Seq;
+               begin
+                  for Id in Note_Button_ID loop
+                     for K of Keys loop
+                        if K = Base_Note + Id'Enum_Rep then
+                           LEDs.Set_Hue (Id, Seq_Hue);
+                        end if;
+                     end loop;
+                  end loop;
+               end;
+
             end case;
          end if;
 

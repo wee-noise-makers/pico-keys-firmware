@@ -248,6 +248,19 @@ package body Pico_Keys.Meta_Gen is
       end if;
    end Add_Tie;
 
+   ------------
+   -- In_Seq --
+   ------------
+
+   function In_Seq (This : Instance) return Sequencer.Note_Array is
+   begin
+      if This.Meta = Seq then
+         return This.Seq_Gen.In_Seq;
+      else
+         return (1 .. 0 => <>);
+      end if;
+   end In_Seq;
+
    ------------------
    -- Current_Mode --
    ------------------

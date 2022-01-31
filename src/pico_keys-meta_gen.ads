@@ -2,7 +2,7 @@ with Pico_Keys.MIDI;
 with Pico_Keys.Generator;
 
 with Pico_Keys.Arpeggiator;
-private with Pico_Keys.Sequencer;
+with Pico_Keys.Sequencer;
 private with Pico_Keys.Keyboard;
 
 package Pico_Keys.Meta_Gen is
@@ -68,6 +68,9 @@ package Pico_Keys.Meta_Gen is
    -- Sequencer --
    procedure Add_Rest (This : in out Instance);
    procedure Add_Tie (This : in out Instance);
+
+   function In_Seq (This : Instance) return Sequencer.Note_Array;
+   --  Return keys part of the current sequencer step
 
    --  Meta --
    function Current_Mode (This : Instance) return Meta_Mode_Kind;
