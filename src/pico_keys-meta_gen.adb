@@ -170,12 +170,12 @@ package body Pico_Keys.Meta_Gen is
    -------------
 
    overriding
-   procedure Trigger (This : in out Instance; Step : Step_Count) is
+   procedure Trigger (This : in out Instance) is
    begin
       case This.Meta is
-         when Key => This.Key_Gen.Trigger (Step);
-         when Arp => This.Arp_Gen.Trigger (Step);
-         when Seq => This.Seq_Gen.Trigger (Step);
+         when Key => This.Key_Gen.Trigger;
+         when Arp => This.Arp_Gen.Trigger;
+         when Seq => This.Seq_Gen.Trigger;
       end case;
    end Trigger;
 

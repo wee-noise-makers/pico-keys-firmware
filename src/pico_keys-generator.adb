@@ -2,59 +2,6 @@ with Pico_Keys.MIDI; use Pico_Keys.MIDI;
 
 package body Pico_Keys.Generator is
 
-   X : constant Boolean := True;
-   I : constant Boolean := False;
-
-   Trig_Map : array (Step_Count, Time_Div) of Boolean
-     := (1  => (X, X, X, X, X, X, X, X),
-         2  => (I, I, I, I, I, I, I, I),
-         3  => (I, I, I, I, I, I, I, X),
-         4  => (I, I, I, X, I, I, I, I),
-         5  => (I, I, I, I, I, I, X, X),
-         6  => (I, I, I, I, I, I, I, I),
-         7  => (I, I, X, X, I, I, I, X),
-         8  => (I, I, I, I, I, I, I, I),
-         9  => (I, I, I, I, I, X, X, X),
-         10 => (I, I, I, X, I, I, I, I),
-         11 => (I, I, I, I, I, I, I, X),
-         12 => (I, I, I, I, I, I, I, I),
-         13 => (I, X, X, X, I, I, X, X),
-         14 => (I, I, I, I, I, I, I, I),
-         15 => (I, I, I, I, I, I, I, X),
-         16 => (I, I, I, X, I, I, I, I),
-         17 => (I, I, I, I, X, X, X, X),
-         18 => (I, I, I, I, I, I, I, I),
-         19 => (I, I, X, X, I, I, I, X),
-         20 => (I, I, I, I, I, I, I, I),
-         21 => (I, I, I, I, I, I, X, X),
-         22 => (I, I, I, X, I, I, I, I),
-         23 => (I, I, I, I, I, I, I, X),
-         24 => (I, I, I, I, I, I, I, I),
-         25 => (X, X, X, X, I, X, X, X),
-         26 => (I, I, I, I, I, I, I, I),
-         27 => (I, I, I, I, I, I, I, X),
-         28 => (I, I, I, X, I, I, I, I),
-         29 => (I, I, I, I, I, I, X, X),
-         30 => (I, I, I, I, I, I, I, I),
-         31 => (I, I, X, X, I, I, I, X),
-         32 => (I, I, I, I, I, I, I, I),
-         33 => (I, I, I, I, X, X, X, X),
-         34 => (I, I, I, X, I, I, I, I),
-         35 => (I, I, I, I, I, I, I, X),
-         36 => (I, I, I, I, I, I, I, I),
-         37 => (I, X, X, X, I, I, X, X),
-         38 => (I, I, I, I, I, I, I, I),
-         39 => (I, I, I, I, I, I, I, X),
-         40 => (I, I, I, X, I, I, I, I),
-         41 => (I, I, I, I, I, X, X, X),
-         42 => (I, I, I, I, I, I, I, I),
-         43 => (I, I, X, X, I, I, I, X),
-         44 => (I, I, I, I, I, I, I, I),
-         45 => (I, I, I, I, I, I, X, X),
-         46 => (I, I, I, X, I, I, I, I),
-         47 => (I, I, I, I, I, I, I, X),
-         48 => (I, I, I, I, I, I, I, I));
-
    subtype Dispatch is Instance'Class;
 
    -------------
@@ -71,6 +18,9 @@ package body Pico_Keys.Generator is
    procedure Play (This : in out Instance) is
    begin
       This.Is_Playing := True;
+
+      This.Next_Trig := RP.Timer.Time'Last;
+      This.First_Of_Pair := True;
    end Play;
 
    ----------
@@ -148,14 +98,87 @@ package body Pico_Keys.Generator is
       end if;
    end Next_Division;
 
+   -----------
+   -- Swing --
+   -----------
+
+   function Swing (This : Instance) return Time_Swing is
+   begin
+      return This.Swing;
+   end Swing;
+
    ----------------
-   -- Do_Trigger --
+   -- Next_Swing --
    ----------------
 
-   function Do_Trigger (This : Instance; Step : Step_Count) return Boolean is
+   procedure Next_Swing (This : in out Instance) is
    begin
-      return Trig_Map (Step, This.Div);
-   end Do_Trigger;
+      if This.Swing /= Time_Swing'Last then
+         This.Swing := Time_Swing'Succ (This.Swing);
+      else
+         This.Swing := Time_Swing'First;
+      end if;
+   end Next_Swing;
+
+   -----------------
+   -- Signal_Step --
+   -----------------
+
+   procedure Signal_Step (This : in out Instance;
+                          BPM  :        Natural;
+                          Step :        Step_Count;
+                          Now  :        RP.Timer.Time)
+   is
+      use RP.Timer;
+
+      Step_Time : constant Time := Time ((Ticks_Per_Second * 60) / (BPM * 24));
+      Steps     : constant Natural := (case This.Division is
+                                          when Div_4   => 24,
+                                          when Div_8   => 12,
+                                          when Div_16  => 6,
+                                          when Div_32  => 3,
+                                          when Div_4T  => 16,
+                                          when Div_8T  => 8,
+                                          when Div_16T => 4,
+                                          when Div_32T => 2);
+      Straight  : constant Time := Step_Time * Time (Steps);
+
+      Swing_Time : constant Time :=
+        Time (Float (Straight) * (case This.Swing is
+                                    when Swing_Off => 0.0,
+                                    when Swing_55  => 0.10,
+                                    when Swing_60  => 0.20,
+                                    when Swing_65  => 0.30,
+                                    when Swing_70  => 0.40,
+                                    when Swing_75  => 0.50));
+
+   begin
+      if On_Time (This.Division, Step) then
+         if This.First_Of_Pair then
+            This.Next_Trig := Now;
+         else
+            This.Next_Trig := Now + Swing_Time;
+         end if;
+
+         This.First_Of_Pair := not This.First_Of_Pair;
+      end if;
+   end Signal_Step;
+
+   -------------------
+   -- Check_Trigger --
+   -------------------
+
+   procedure Check_Trigger (This : in out Instance;
+                            Now  :        RP.Timer.Time)
+   is
+      use RP.Timer;
+
+   begin
+      if This.Next_Trig <= Now then
+         Dispatch (This).Trigger;
+         This.Next_Trig := RP.Timer.Time'Last;
+      end if;
+   end Check_Trigger;
 
    -------------
    -- Note_On --

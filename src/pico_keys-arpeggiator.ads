@@ -30,7 +30,7 @@ package Pico_Keys.Arpeggiator is
    procedure Enter_Func_Mode (This : in out Instance) is null;
 
    overriding
-   procedure Trigger (This : in out Instance; Step : Step_Count);
+   procedure Trigger (This : in out Instance);
 
    overriding
    procedure Clear (This : in out Instance) ;

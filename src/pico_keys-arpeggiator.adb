@@ -86,13 +86,8 @@ package body Pico_Keys.Arpeggiator is
    -------------
 
    overriding
-   procedure Trigger (This : in out Instance; Step : Step_Count) is
+   procedure Trigger (This : in out Instance) is
    begin
-      if not This.Do_Trigger (Step) then
-         --  No triggering on this step;
-         return;
-      end if;
-
       if This.Note_To_Turn_Off /= 0 then
          This.Note_Off (This.Note_To_Turn_Off);
          This.Note_To_Turn_Off := 0;

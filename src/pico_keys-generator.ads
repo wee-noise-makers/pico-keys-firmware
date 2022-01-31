@@ -45,7 +45,17 @@ package Pico_Keys.Generator is
 
    function Division (This : Instance) return Time_Div;
    procedure Next_Division (This : in out Instance);
-   function Do_Trigger (This : Instance; Step : Step_Count) return Boolean;
+
+   function Swing (This : Instance) return Time_Swing;
+   procedure Next_Swing (This : in out Instance);
+
+   procedure Signal_Step (This : in out Instance;
+                          BPM  :        Natural;
+                          Step :        Step_Count;
+                          Now  :        RP.Timer.Time);
+
+   procedure Check_Trigger (This : in out Instance;
+                            Now  :        RP.Timer.Time);
 
    -- Events --
 
@@ -61,9 +71,9 @@ package Pico_Keys.Generator is
    is abstract;
    --  Call this procedure when user switch to func mode
 
-   procedure Trigger (This : in out Instance; Step : Step_Count)
+   procedure Trigger (This : in out Instance)
    is abstract;
-   --  Call this procedure on every 64th time div
+   --  Call this procedure to trigger the next note
 
    -- Playing notes --
 
@@ -84,7 +94,11 @@ private
       Chan : MIDI.MIDI_Channel := MIDI.MIDI_Channel'First;
       Notes_On : Key_Mask := (others => False);
       Div : Time_Div := Time_Div'First;
+      Swing : Time_Swing := Time_Swing'First;
       Is_Playing : Boolean;
+
+      Next_Trig : RP.Timer.Time := 0;
+      First_Of_Pair : Boolean := True;
    end record;
 
 end Pico_Keys.Generator;

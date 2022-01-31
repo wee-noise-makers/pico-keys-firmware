@@ -120,13 +120,8 @@ package body Pico_Keys.Sequencer is
    -------------
 
    overriding
-   procedure Trigger (This : in out Instance; Step : Step_Count) is
+   procedure Trigger (This : in out Instance) is
    begin
-      if not This.Do_Trigger (Step) then
-         --  No triggering on this step;
-         return;
-      end if;
-
 
       if not This.Playing or else This.Edit_Step < Step_Index'First then
          This.Release_All;

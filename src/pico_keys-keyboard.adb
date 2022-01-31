@@ -63,7 +63,7 @@ package body Pico_Keys.Keyboard is
    -------------
 
    overriding
-   procedure Trigger (This : in out Instance; Step : Step_Count) is
+   procedure Trigger (This : in out Instance) is
    begin
       null;
    end Trigger;

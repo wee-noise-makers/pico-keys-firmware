@@ -27,7 +27,7 @@ package Pico_Keys.Keyboard is
    procedure Enter_Func_Mode (This : in out Instance);
 
    overriding
-   procedure Trigger (This : in out Instance; Step : Step_Count);
+   procedure Trigger (This : in out Instance);
 
    overriding
    procedure Clear (This : in out Instance)
