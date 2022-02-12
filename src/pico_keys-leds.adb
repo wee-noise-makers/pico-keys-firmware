@@ -1,21 +1,22 @@
 with HAL; use HAL;
 
-with RP.Device;
 with RP.PIO; use RP.PIO;
 with RP.GPIO; use RP.GPIO;
-with RP.DMA;
 
-with Pico_Keys.WS2812_PIO_ASM;
+with RP.PIO.WS2812; use RP.PIO.WS2812;
 with Pico_Keys.PIO; use Pico_Keys.PIO;
 
 package body Pico_Keys.LEDs is
 
-   Out_Pin : RP.GPIO.GPIO_Point := (Pin => 1);
+   Out_Pin : aliased RP.GPIO.GPIO_Point := (Pin => 1);
 
    Number_Of_LEDs : constant := 18;
-   type LED_ID is range 1 .. Number_Of_LEDs;
-   type LED_Data is array (LED_ID) of HAL.UInt32;
-   type LED_Data_Access is access all LED_Data;
+   subtype LED_ID is Natural range 1 .. Number_Of_LEDs;
+
+   LED_Strip : aliased RP.PIO.WS2812.Strip (Out_Pin'Access,
+                                            WS2812_PIO'Access,
+                                            WS2812_SM,
+                                            Number_Of_LEDs);
 
    Button_To_LED : constant array (Button_ID) of LED_ID :=
      (btn_C    => 9,
@@ -38,10 +39,7 @@ package body Pico_Keys.LEDs is
       btn_func => 1
      );
 
-   Data : aliased LED_Data := (others => 0);
    Step_Cnt : UInt32 := 0;
-
-   procedure Push_Data_DMA (Data : not null LED_Data_Access);
 
    --------------
    -- Blink_On --
@@ -49,7 +47,7 @@ package body Pico_Keys.LEDs is
 
    function Blink_On return Boolean is
    begin
-      return (Step_Cnt mod 1_000) < 500;
+      return (Step_Cnt mod 100) < 50;
    end Blink_On;
 
    -------------------
@@ -58,7 +56,7 @@ package body Pico_Keys.LEDs is
 
    function Blink_Fast_On return Boolean is
    begin
-      return (Step_Cnt mod 100) < 50;
+      return (Step_Cnt mod 10) < 5;
    end Blink_Fast_On;
 
    -----------
@@ -67,7 +65,7 @@ package body Pico_Keys.LEDs is
 
    procedure Clear is
    begin
-      Data := (others => 0);
+      Clear (LED_Strip);
    end Clear;
 
    ------------
@@ -77,7 +75,7 @@ package body Pico_Keys.LEDs is
    procedure Update is
    begin
       Step_Cnt := Step_Cnt + 1;
-      Push_Data_DMA (Data'Access);
+      Update (LED_Strip);
    end Update;
 
    -------------
@@ -86,9 +84,7 @@ package body Pico_Keys.LEDs is
 
    procedure Set_RGB (Id : Button_ID; R, G, B : HAL.UInt8) is
    begin
-      Data (Button_To_LED (Id)) := Shift_Left (UInt32 (B), 16)
-        or Shift_Left (UInt32 (R), 8)
-        or Shift_Left (UInt32 (G), 0);
+      Set_RGB (LED_Strip, Button_To_LED (Id), R, G, B);
    end Set_RGB;
 
    -------------
@@ -99,35 +95,8 @@ package body Pico_Keys.LEDs is
                       H    : Hue;
                       S, V : HAL.UInt8)
    is
-      R, G, B : UInt8;
-
-      Region, Remainder : UInt32;
-      P, Q, T : UInt8;
    begin
-      if S = 0 then
-         R := V;
-         G := V;
-         B := V;
-      else
-
-         Region := Uint32 (H / 43);
-         Remainder := (Uint32 (H) - (Region * 43)) * 6;
-
-         P := UInt8 (Shift_Right (Uint32 (V) * (255 - Uint32 (S)), 8));
-         Q := UInt8 (Shift_Right (Uint32 (V) * (255 - Shift_Right (Uint32 (S) * Remainder, 8)), 8));
-         T := UInt8 (Shift_Right (Uint32 (V) * (255 - Shift_Right (Uint32 (S) * (255 - Remainder), 8)), 8));
-
-         case (Region) is
-            when      0 => R := V; G := T; B := P;
-            when      1 => R := Q; G := V; B := P;
-            when      2 => R := P; G := V; B := T;
-            when      3 => R := P; G := Q; B := V;
-            when      4 => R := T; G := P; B := V;
-            when others => R := V; G := P; B := Q;
-         end case;
-      end if;
-
-      Set_RGB (Id, R, G, B);
+      Set_HSV (LED_Strip, Button_To_LED (Id), UInt8 (H), S, V);
    end Set_HSV;
 
    -------------
@@ -157,79 +126,10 @@ package body Pico_Keys.LEDs is
    ----------------
 
    procedure Initialize is
-      Config         : PIO_SM_Config := Default_SM_Config;
-
-      Freq           : constant := 80_0000;
-      Cycles_Per_Bit : constant := WS2812_PIO_ASM.T1 +
-        WS2812_PIO_ASM.T2 + WS2812_PIO_ASM.T3;
-
-      Bit_Per_LED : constant := 24;
-
    begin
-      Out_Pin.Configure (Output, Pull_Up, WS2812_PIO.GPIO_Function);
-
-      WS2812_PIO.Enable;
-
-      WS2812_PIO.Load (WS2812_PIO_ASM.Ws2812_Program_Instructions,
-                       Offset => WS2812_Offset);
-
-      WS2812_PIO.Set_Pin_Direction (WS2812_SM, Out_Pin.Pin, Output);
-
-      Set_Sideset (Config,
-                   Bit_Count => 1,
-                   Optional  => False,
-                   Pindirs   => False);
-      Set_Sideset_Pins (Config, Sideset_Base => Out_Pin.Pin);
-
-      Set_Out_Shift (Config,
-                     Shift_Right    => True,
-                     Autopull       => True,
-                     Pull_Threshold => Bit_Per_LED);
-      Set_FIFO_Join (Config,
-                     Join_TX => True,
-                     Join_RX => False);
-
-      Set_Wrap (Config,
-                WS2812_Offset + WS2812_PIO_ASM.Ws2812_Wrap_Target,
-                WS2812_Offset + WS2812_PIO_ASM.Ws2812_Wrap);
-      Set_Clock_Frequency (Config, Freq * Cycles_Per_Bit);
-
-      WS2812_PIO.SM_Initialize (WS2812_SM,
-                                WS2812_Offset,
-                                Config);
-      WS2812_PIO.Set_Enabled (WS2812_SM, True);
-
-      -- DMA --
-      declare
-         use RP.DMA;
-         Config : DMA_Configuration;
-      begin
-         Config.Trigger := WS2812_DMA_Trigger;
-         Config.Data_Size := Transfer_32;
-         Config.Increment_Read := True;
-         Config.Increment_Write := False;
-
-         RP.DMA.Configure (LED_PIO_DMA, Config);
-      end;
-
+      Initialize (LED_Strip, WS2812_Offset);
+      Enable_DMA (LED_Strip, LED_PIO_DMA);
    end Initialize;
-
-   -------------------
-   -- Push_Data_DMA --
-   -------------------
-
-   procedure Push_Data_DMA (Data : not null LED_Data_Access) is
-   begin
-      if RP.DMA.Busy (LED_PIO_DMA) then
-         --  Previous DMA transfer still in progress
-         return;
-      end if;
-
-      RP.DMA.Start (Channel => LED_PIO_DMA,
-                    From    => Data.all'Address,
-                    To      => WS2812_PIO.TX_FIFO_Address (WS2812_SM),
-                    Count   => Data.all'Length);
-   end Push_Data_DMA;
 
 begin
    Initialize;
