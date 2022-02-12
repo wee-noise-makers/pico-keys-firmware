@@ -7,31 +7,26 @@ with Pico_Keys.Buttons;
 with Pico_Keys.MIDI;
 with Pico_Keys.MIDI.Serial;
 with Pico_Keys.Meta_Gen; use Pico_Keys.Meta_Gen;
-with Pico_Keys.Generator;
 with Pico_Keys.Arpeggiator;
 with Pico_Keys.Sequencer;
+with Pico_Keys.Save; use Pico_Keys.Save;
 
-with Pico_Keys.Generator_Instances; use Pico_Keys.Generator_Instances;
-
-with RP.Device;
 with RP.Timer; use RP.Timer;
 
 procedure Pico_Keys_Firmware is
 
    Current_Gen : Gen_Id := Gen_Id'First;
 
-   Gen_Btn : array (Gen_Id) of Pico_Keys.Button_ID
+   Gen_Btn : constant array (Gen_Id) of Pico_Keys.Button_ID
      := (1 => Btn_G1,
          2 => Btn_G2,
          3 => Btn_G3);
 
-   Next_Gen_Trig : array (Gen_Id) of RP.Timer.Time := (others => 0);
-
-   Arp_Hue      : constant LEDS.Hue := LEDs.Blue;
-   Beat_Hue     : constant LEDS.Hue := LEDs.Green;
-   Triplet_Hue  : constant LEDS.Hue := LEDs.Orange;
-   Seq_Hue      : constant LEDS.Hue := LEDs.Red;
-   Keyboard_Hue : constant LEDS.Hue := LEDs.Violet;
+   Arp_Hue      : constant LEDs.Hue := LEDs.Blue;
+   Beat_Hue     : constant LEDs.Hue := LEDs.Green;
+   Triplet_Hue  : constant LEDs.Hue := LEDs.Orange;
+   Seq_Hue      : constant LEDs.Hue := LEDs.Red;
+   Keyboard_Hue : constant LEDs.Hue := LEDs.Violet;
 
    Gen_Hue : constant array (Pico_Keys.Meta_Gen.Meta_Mode_Kind) of LEDs.Hue
      := (Key => Keyboard_Hue,
@@ -40,7 +35,6 @@ procedure Pico_Keys_Firmware is
 
    Base_Note : MIDI.MIDI_Key := MIDI.C4;
 
-   BPM : Natural := 120;
    Min_BPM : constant Natural := 50;
    Max_BPM : constant Natural := 250;
 
@@ -50,6 +44,18 @@ procedure Pico_Keys_Firmware is
    Step : Step_Count := Step_Count'First;
 
    Now : RP.Timer.Time;
+
+   Generators : Pico_Keys.Save.Gen_Array renames RAM_State.Generators;
+   BPM        : Natural                  renames RAM_State.BPM;
+
+   Playing_Before, Playing_After : Boolean;
+
+   Save_Btn_Long_Press_Deadline : RP.Timer.Time;
+   Save_Btn_Dbl_Press_Deadline : RP.Timer.Time;
+   Save_Blink_Until : RP.Timer.Time;
+   Save_Blink_Hue   : LEDs.Hue;
+   Save_Blink_Duration : constant RP.Timer.Time := Ticks_Per_Second / 2;
+
 begin
 
    --  Set Gen 2 to seq
@@ -58,6 +64,9 @@ begin
    --  Set Gen 3 to arp
    Generators (3).Next_Meta;
    Generators (3).Next_Meta;
+
+   --  Load a previous save, if there's one in flash
+   Pico_Keys.Save.Load_From_Flash;
 
    loop
       Now := Clock;
@@ -93,8 +102,16 @@ begin
 
          if Buttons.Pressed (Btn_Func) then
 
+            Playing_Before := (for some G of Generators => G.Playing);
+
             if Buttons.Falling (Btn_Func) then
                Generators (Current_Gen).Enter_Func_Mode;
+
+               --  When entering func mode, reset the double press / long press
+               --  system.
+               Save_Btn_Long_Press_Deadline := RP.Timer.Time'Last;
+               Save_Btn_Dbl_Press_Deadline := RP.Timer.Time'First;
+               Save_Blink_Until := RP.Timer.Time'First;
             end if;
 
             Generators (Current_Gen).No_Keys_Pressed;
@@ -115,7 +132,7 @@ begin
                    when Swing_60  => (Step mod 12) = 0,
                    when Swing_65  => (Step mod  6) = 0,
                    when Swing_70  => (Step mod  3) = 0,
-                   when Swing_75  => (Step mod  1) = 0)
+                   when Swing_75  => True)
             then
                LEDS.Set_Hue (Btn_Time_Swing, Beat_Hue);
             end if;
@@ -161,6 +178,41 @@ begin
                Generators (Current_Gen).Next_Meta;
             end if;
 
+            --  Save / Load
+            if Buttons.Falling (Btn_Save) then
+               Save_Btn_Long_Press_Deadline := Now + (Ticks_Per_Second * 1);
+            elsif Buttons.Pressed (Btn_Save) then
+
+               --  If the button is pressed since more than a second
+               if Now >= Save_Btn_Long_Press_Deadline then
+                  Save.Save_To_Flash;
+
+                  Save_Blink_Hue := LEDs.Red; --  Red means recording ^^
+                  Save_Blink_Until := Now + Save_Blink_Duration;
+
+                  Save_Btn_Long_Press_Deadline := RP.Timer.Time'Last;
+               end if;
+
+            elsif Buttons.Rising (Btn_Save) then
+
+               --  If the button was released less than a second ago (double
+               --  press/release).
+               if Now <= Save_Btn_Dbl_Press_Deadline then
+                  Save.Load_From_Flash;
+
+                  Save_Blink_Hue := LEDs.Green; --  Green means loading...
+                  Save_Blink_Until := Now + Save_Blink_Duration;
+
+                  Save_Btn_Dbl_Press_Deadline := RP.Timer.Time'First;
+               else
+                  Save_Btn_Dbl_Press_Deadline := Now + (Ticks_Per_Second / 2);
+               end if;
+            end if;
+
+            if Now <= Save_Blink_Until then
+               LEDS.Set_Hue (Btn_Save, Save_Blink_Hue, LEDs.Blink_Fast);
+            end if;
+
             --  Clear
             if Buttons.Falling (Btn_Clear) then
                Generators (Current_Gen).Clear;
@@ -192,8 +244,8 @@ begin
                end if;
 
             when Arp =>
-               LEDs.Set_Hue (Btn_Clear, Keyboard_Hue);
-               LEDS.Set_Hue (Btn_Meta_Mode, Seq_Hue);
+               LEDs.Set_Hue (Btn_Clear, Arp_Hue);
+               LEDS.Set_Hue (Btn_Meta_Mode, Keyboard_Hue);
 
                --  ARP Mode LED
                case Generators (Current_Gen).Arp_Mode is
@@ -212,26 +264,7 @@ begin
             --  Change generator
             if Buttons.Falling (Gen_Btn (Current_Gen)) then
 
-               declare
-                  Playing_Before, Playing_After : Boolean;
-               begin
-
-                  Playing_Before := (for some G of Generators => G.Playing);
-
-                  Generators (Current_Gen).Toggle_Play;
-
-                  Playing_After := (for some G of Generators => G.Playing);
-
-                  if Playing_Before and then not Playing_After then
-                     --  The last playing generator was stopped
-                     MIDI.Send_Stop;
-
-                  elsif not Playing_Before and then Playing_After then
-                     --  At least one generator was started
-                     MIDI.Send_Start;
-                     Step := Step_Count'First;
-                  end if;
-               end;
+               Generators (Current_Gen).Toggle_Play;
             else
                Gen_Switch_Loop : for G in Gen_Id loop
                   if Current_Gen /= G and Buttons.Falling (Gen_Btn (G)) then
@@ -239,6 +272,18 @@ begin
                      exit Gen_Switch_loop;
                   end if;
                end loop Gen_Switch_Loop;
+            end if;
+
+            Playing_After := (for some G of Generators => G.Playing);
+
+            if Playing_Before and then not Playing_After then
+               --  The last playing generator was stopped
+               MIDI.Send_Stop;
+
+            elsif not Playing_Before and then Playing_After then
+               --  At least one generator was started
+               MIDI.Send_Start;
+               Step := Step_Count'First;
             end if;
 
          else

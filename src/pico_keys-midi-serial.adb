@@ -6,12 +6,11 @@ with RP.GPIO; use RP.GPIO;
 
 with BBqueue;         use BBqueue;
 with BBqueue.Buffers; use BBqueue.Buffers;
-with HAL.UART; use HAL.UART;
 
 package body Pico_Keys.MIDI.Serial is
 
    UART           : RP.UART.UART_Port renames RP.Device.UART_0;
-   DMA_TX_Trigger : RP.DMA.DMA_Request_Trigger := RP.DMA.UART0_TX;
+   DMA_TX_Trigger : constant RP.DMA.DMA_Request_Trigger := RP.DMA.UART0_TX;
    UART_TX        : RP.GPIO.GPIO_Point := (Pin => 0);
 
    Out_Grant : BBqueue.Buffers.Read_Grant;
@@ -52,7 +51,6 @@ package body Pico_Keys.MIDI.Serial is
    -----------
 
    procedure Flush is
-      use BBqueue.Buffers;
    begin
       if RP.DMA.Busy (UART_TX_DMA) then
          --  Previous DMA transfer still in progress

@@ -1,9 +1,4 @@
-
-with System;
-
-with RP.Clock;
 with RP.GPIO;
-with RP.DMA;
 with RP.Device;
 
 package body Pico_Keys is
@@ -13,11 +8,43 @@ package body Pico_Keys is
    -------------------------
 
    procedure Last_Chance_Handler (Msg : System.Address; Line : Integer) is
+      pragma Unreferenced (Msg, Line);
    begin
       loop
          null;
       end loop;
    end Last_Chance_Handler;
+
+   procedure ISR_Invalid;
+   pragma Export (ASM, ISR_Invalid, "isr_invalid");
+
+   procedure ISR_Hardfault;
+   pragma Export (ASM, ISR_Hardfault, "isr_hardfault");
+
+   procedure ISR_Nmi;
+   pragma Export (ASM, ISR_Nmi, "isr_nmi");
+
+   procedure ISR_Invalid is
+   begin
+      loop
+         null;
+      end loop;
+   end ISR_Invalid;
+
+   procedure ISR_Hardfault is
+   begin
+      loop
+         null;
+      end loop;
+   end ISR_Hardfault;
+
+   procedure ISR_Nmi is
+   begin
+      loop
+         null;
+      end loop;
+   end ISR_Nmi;
+
 
 begin
    RP.Clock.Initialize (XOSC_Frequency);

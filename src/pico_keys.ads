@@ -2,7 +2,6 @@ with System;
 
 with RP.DMA;
 with RP.Clock;
-with RP.Timer;
 
 package Pico_Keys is
    pragma Elaborate_Body;
@@ -50,12 +49,6 @@ package Pico_Keys is
 
    subtype Note_Button_ID is Button_ID range Btn_C .. Btn_E2;
 
-   Btn_Oct_Minus : constant Button_ID := Btn_Cs;
-   Btn_Oct_Plus  : constant Button_ID := Btn_Ds;
-   Btn_Chan_Minus : constant Button_ID := Btn_C2s;
-   Btn_Chan_Plus  : constant Button_ID := Btn_D2s;
-   Btn_BPM_Minus : constant Button_ID := Btn_D2;
-   Btn_BPM_Plus  : constant Button_ID := Btn_E2;
 
    Btn_G1 : constant Button_ID := Btn_Fs;
    Btn_G2 : constant Button_ID := Btn_Gs;
@@ -68,6 +61,13 @@ package Pico_Keys is
    Btn_Time_Div   : constant Button_ID := Btn_G;
    Btn_Time_Swing : constant Button_ID := Btn_A;
    Btn_Meta_Mode  : constant Button_ID := Btn_B;
+   Btn_Save       : constant Button_ID := Btn_C2;
+   Btn_Oct_Minus  : constant Button_ID := Btn_Cs;
+   Btn_Oct_Plus   : constant Button_ID := Btn_Ds;
+   Btn_Chan_Minus : constant Button_ID := Btn_C2s;
+   Btn_Chan_Plus  : constant Button_ID := Btn_D2s;
+   Btn_BPM_Minus  : constant Button_ID := Btn_D2;
+   Btn_BPM_Plus   : constant Button_ID := Btn_E2;
 
    LED_PIO_DMA : constant RP.DMA.DMA_Channel_Id := 1;
    UART_TX_DMA : constant RP.DMA.DMA_Channel_Id := 2;

@@ -188,7 +188,8 @@ package body Pico_Keys.Sequencer is
 
    function In_Seq (This : Instance) return Note_Array is
    begin
-      if This.Edit_Step >= Step_Index'Last then
+      if This.Edit_Step not in Step_Index'First .. Step_Index'Last
+      then
          return (1 .. 0 => <>);
       end if;
 

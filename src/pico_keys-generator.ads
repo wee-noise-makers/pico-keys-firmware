@@ -1,10 +1,11 @@
 --  Abstract class for note generators (Arp, Seq, Keyboard, etc..)
 
 with Pico_Keys.MIDI;
+with RP.Timer;
 
 package Pico_Keys.Generator is
 
-   type Instance is abstract tagged limited private;
+   type Instance is abstract tagged private;
 
    type Acc is access all Instance;
    type Any_Acc is access all Instance'Class;
@@ -90,7 +91,7 @@ package Pico_Keys.Generator is
 private
 
    type Key_Mask is array (MIDI.MIDI_Key) of Boolean;
-   type Instance is abstract tagged limited record
+   type Instance is abstract tagged record
       Chan : MIDI.MIDI_Channel := MIDI.MIDI_Channel'First;
       Notes_On : Key_Mask := (others => False);
       Div : Time_Div := Time_Div'First;
