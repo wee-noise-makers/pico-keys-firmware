@@ -1,0 +1,15 @@
+name = "synth_plugin"
+description = "Shiny new project"
+version = "0.0.0"
+
+authors = ["Fabien Chouteau"]
+maintainers = ["Fabien Chouteau <fabien.chouteau@gmail.com>"]
+maintainers-logins = ["Fabien-Chouteau"]
+
+executables = ["synth_plugin"]
+[[depends-on]]  # Added by alr
+gnat_arm_elf = "^11.2.2"  # Added by alr
+[[depends-on]]  # Added by alr
+virtapu = "~0.2.0"  # Added by alr
+[[depends-on]]  # Added by alr
+hal = "~0.1.0"  # Added by alr

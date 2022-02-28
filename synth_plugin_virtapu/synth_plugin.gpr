@@ -1,0 +1,114 @@
+with "config/synth_plugin_config.gpr";
+project Synth_Plugin is
+
+   for Languages use ("Ada", "ASM_CPP", "c++"); -- ASM_CPP to compile the startup code
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj";
+   for Create_Missing_Dirs use "True";
+   for Exec_Dir use "bin";
+   for Main use ("synth_plugin.adb");
+
+   for Target use "arm-elf";
+   for Runtime ("Ada") use "zfp-cortex-m0p";
+
+   package Naming is
+      for Spec_Suffix ("C++")  use ".h";
+      for Body_Suffix ("C++")  use ".cc";
+   end Naming;
+
+    package Device_Configuration is
+
+      for CPU_Name use "cortex-m0p";
+      --  for Number_Of_Interrupts use "25";
+
+      for Memories use ("RAM");
+
+      for Boot_Memory use "RAM";
+
+      for Main_Stack_Memory use "RAM";
+      for Main_Stack_Size use "2K";
+
+      for Mem_Kind ("RAM") use "RAM";
+      for Address ("RAM")  use "16#20027000#";
+      for Size ("RAM")     use "100K";
+
+   end Device_Configuration;
+
+   package Linker is
+      for Switches ("Ada") use ("-T", Project'Project_Dir & "/src/link.ld");
+   end Linker;
+
+   type Enabled_Kind is ("enabled", "disabled");
+   Compile_Checks : Enabled_Kind := External ("SYNTH_PLUGIN_COMPILE_CHECKS", "disabled");
+   Runtime_Checks : Enabled_Kind := External ("SYNTH_PLUGIN_RUNTIME_CHECKS", "disabled");
+   Style_Checks : Enabled_Kind := External ("SYNTH_PLUGIN_STYLE_CHECKS", "disabled");
+   Contracts_Checks : Enabled_Kind := External ("SYNTH_PLUGIN_CONTRACTS", "disabled");
+
+   type Build_Kind is ("debug", "optimize");
+   Build_Mode : Build_Kind := External ("SYNTH_PLUGIN_BUILD_MODE", "optimize");
+
+   Compile_Checks_Switches := ();
+   case Compile_Checks is
+      when "enabled" =>
+         Compile_Checks_Switches :=
+           ("-gnatwa",  -- All warnings
+            "-gnatVa",  -- All validity checks
+            "-gnatwe"); -- Warnings as errors
+      when others => null;
+   end case;
+
+   Runtime_Checks_Switches := ();
+   case Runtime_Checks is
+      when "enabled" => null;
+      when others =>
+         Runtime_Checks_Switches :=
+           ("-gnatp"); -- Suppress checks
+   end case;
+
+   Style_Checks_Switches := ();
+   case Style_Checks is
+      when "enabled" =>
+         Style_Checks_Switches :=
+           ("-gnatyg",   -- GNAT Style checks
+            "-gnaty-d",  -- Disable no DOS line terminators
+            "-gnatyM80", -- Maximum line length
+            "-gnatyO");  -- Overriding subprograms explicitly marked as such
+      when others => null;
+   end case;
+
+   Contracts_Switches := ();
+   case Contracts_Checks is
+      when "enabled" =>
+         Contracts_Switches :=
+           ("-gnata"); --  Enable assertions and contracts
+      when others => null;
+   end case;
+
+   Build_Switches := ();
+   case Build_Mode is
+      when "optimize" =>
+         Build_Switches := ("-O3",     -- Optimization
+                            "-gnatn"); -- Enable inlining
+      when "debug" =>
+         Build_Switches := ("-g",   -- Debug info
+                            "-Og"); -- No optimization
+   end case;
+
+   package Compiler is
+      for Driver ("C++") use "arm-none-eabi-g++";
+
+      for Default_Switches ("Ada") use
+        Compile_Checks_Switches &
+        Build_Switches &
+        Runtime_Checks_Switches &
+        Style_Checks_Switches &
+        Contracts_Switches &
+        ("-gnatw.X", -- Disable warnings for No_Exception_Propagation
+         "-gnatQ");  -- Don't quit. Generate ALI and tree files even if illegalities
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+end Synth_Plugin;
