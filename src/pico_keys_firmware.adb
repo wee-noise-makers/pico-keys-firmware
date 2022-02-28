@@ -9,6 +9,8 @@ with Pico_Keys.MIDI.Serial;
 with Pico_Keys.Meta_Gen; use Pico_Keys.Meta_Gen;
 with Pico_Keys.Arpeggiator;
 with Pico_Keys.Sequencer;
+with Pico_Keys.Synth_UI;
+with Pico_Keys.Synth_Plugin;
 with Pico_Keys.Save; use Pico_Keys.Save;
 
 with RP.Timer; use RP.Timer;
@@ -33,7 +35,7 @@ procedure Pico_Keys_Firmware is
          Arp => Arp_Hue,
          Seq => Seq_Hue);
 
-   Base_Note : MIDI.MIDI_Key := MIDI.C4;
+   Base_Note : MIDI.MIDI_Key := MIDI.C6;
 
    Min_BPM : constant Natural := 50;
    Max_BPM : constant Natural := 250;
@@ -57,6 +59,8 @@ procedure Pico_Keys_Firmware is
    Save_Blink_Duration : constant RP.Timer.Time := Ticks_Per_Second / 2;
 
 begin
+
+   Pico_Keys.Synth_Plugin.Start;
 
    --  Set Gen 2 to seq
    Generators (2).Next_Meta;
@@ -100,7 +104,11 @@ begin
                                   then LEDs.Blink_Fast
                                   else LEDs.None));
 
-         if Buttons.Pressed (Btn_Func) then
+         if Buttons.Pressed (Btn_Synth) then
+
+            Pico_Keys.Synth_UI.Process_Keys (Now);
+
+         elsif Buttons.Pressed (Btn_Func) then
 
             Playing_Before := (for some G of Generators => G.Playing);
 

@@ -1,3 +1,5 @@
+with Pico_Keys.Synth_Plugin;
+
 package body Pico_Keys.MIDI is
 
    --------------------------
@@ -39,8 +41,10 @@ package body Pico_Keys.MIDI is
    procedure Send_Note_On (K    : MIDI_Key;
                            Chan : MIDI_Channel)
    is
+      Msg : constant Message := (Note_On, Chan, K, MIDI_Data'Last);
    begin
-      Send ((Note_On, Chan, K, MIDI_Data'Last));
+      Send (Msg);
+      Pico_Keys.Synth_Plugin.Send (Msg);
    end Send_Note_On;
 
    -------------------
@@ -50,13 +54,34 @@ package body Pico_Keys.MIDI is
    procedure Send_Note_Off (K    : MIDI_Key;
                             Chan : MIDI_Channel)
    is
+      Msg : constant Message := (Note_Off, Chan, K, MIDI_Data'Last);
    begin
-      Send ((Note_Off, Chan, K, MIDI_Data'Last));
+      Send (Msg);
+      Pico_Keys.Synth_Plugin.Send (Msg);
    end Send_Note_Off;
 
-   ---------------------
-   -- Send_Clock_Tick --
-   ---------------------
+   -------------
+   -- Send_CC --
+   -------------
+
+   procedure Send_CC (Chan       : MIDI_Channel;
+                      Controller : MIDI_Data;
+                      Value      : MIDI_Data)
+   is
+      Msg : constant Message := (Continous_Controller,
+                                 Chan,
+                                 Controller,
+                                 Value);
+   begin
+
+      --  CC are only going to the internal synth
+
+      Pico_Keys.Synth_Plugin.Send (Msg);
+   end Send_CC;
+
+   ----------------
+   -- Send_UInt8 --
+   ----------------
 
    procedure Send_UInt8 (V : UInt8) is
       use BBqueue;

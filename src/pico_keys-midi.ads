@@ -63,6 +63,10 @@ package Pico_Keys.MIDI is
    procedure Send_Note_Off (K : MIDI_Key;
                             Chan : MIDI_Channel);
 
+   procedure Send_CC (Chan       : MIDI_Channel;
+                      Controller : MIDI_Data;
+                      Value      : MIDI_Data);
+
    procedure Send_Clock_Tick;
    procedure Send_Start;
    procedure Send_Stop;

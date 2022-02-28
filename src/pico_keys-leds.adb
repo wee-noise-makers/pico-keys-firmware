@@ -10,7 +10,7 @@ package body Pico_Keys.LEDs is
 
    Out_Pin : aliased RP.GPIO.GPIO_Point := (Pin => 1);
 
-   Number_Of_LEDs : constant := 18;
+   Number_Of_LEDs : constant := 19;
    subtype LED_ID is Natural range 1 .. Number_Of_LEDs;
 
    LED_Strip : aliased RP.PIO.WS2812.Strip (Out_Pin'Access,
@@ -19,24 +19,25 @@ package body Pico_Keys.LEDs is
                                             Number_Of_LEDs);
 
    Button_To_LED : constant array (Button_ID) of LED_ID :=
-     (btn_C    => 9,
-      btn_Cs   => 8,
-      btn_D    => 10,
-      btn_Ds   => 7,
-      btn_E    => 11,
-      btn_F    => 12,
-      btn_Fs   => 6,
-      btn_G    => 13,
-      btn_Gs   => 5,
-      btn_A    => 14,
-      btn_As   => 4,
-      btn_B    => 15,
-      btn_C2   => 16,
-      btn_C2s  => 3,
-      btn_D2   => 17,
-      btn_D2s  => 2,
-      btn_E2   => 18,
-      btn_func => 1
+     (Btn_C    => 9,
+      Btn_Cs   => 8,
+      Btn_D    => 10,
+      Btn_Ds   => 7,
+      Btn_E    => 11,
+      Btn_F    => 12,
+      Btn_Fs   => 6,
+      Btn_G    => 13,
+      Btn_Gs   => 5,
+      Btn_A    => 14,
+      Btn_As   => 4,
+      Btn_B    => 15,
+      Btn_C2   => 16,
+      Btn_C2s  => 3,
+      Btn_D2   => 17,
+      Btn_D2s  => 2,
+      Btn_E2   => 18,
+      Btn_Func => 1,
+      Btn_Synth => 19
      );
 
    Step_Cnt : UInt32 := 0;
