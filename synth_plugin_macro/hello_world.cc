@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION ObF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 
 //#include <stm32f10x_conf.h>
@@ -86,7 +86,7 @@ volatile bool trigger_flag[NBR_OF_OSCs];
 // uint16_t trigger_delay;
 
 extern "C" {
-  
+
 void HardFault_Handler(void) { while (1); }
 void MemManage_Handler(void) { while (1); }
 void BusFault_Handler(void) { while (1); }
@@ -121,19 +121,19 @@ extern "C"{
 //     return;
 //   }
 //   TIM1->SR = (uint16_t)~TIM_IT_Update;
-  
+
 //   dac.Write(-audio_samples[playback_block][current_sample] + 32768);
 
 //   bool trigger_detected = gate_input.raised();
 //   sync_samples[playback_block][current_sample] = trigger_detected;
 //   trigger_detected_flag = trigger_detected_flag | trigger_detected;
-  
+
 //   current_sample = current_sample + 1;
 //   if (current_sample >= kBlockSize) {
 //     current_sample = 0;
 //     playback_block = (playback_block + 1) % kNumBlocks;
 //   }
-  
+
 //   bool adc_scan_cycle_complete = adc.PipelinedScan();
 //   if (adc_scan_cycle_complete) {
 //     ui.UpdateCv(adc.channel(0), adc.channel(1), adc.channel(2), adc.channel(3));
@@ -172,13 +172,13 @@ void Init() {
   }
   //quantizer.Init();
   // internal_adc.Init();
-  
+
   for (size_t i = 0; i < NBR_OF_OSCs; ++i) {
     fill(&audio_samples[i][0], &audio_samples[i][kBlockSize], 0);
     fill(&sync_samples[i][0], &sync_samples[i][kBlockSize], 0);
   }
   // current_sample = 0;
-  
+
   // jitter_source.Init();
   // sys.StartTimers();
 }
@@ -206,7 +206,7 @@ void RenderBlock(int osc_id) {
       settings[osc_id].GetValue(SETTING_AD_ATTACK) * 8,
       settings[osc_id].GetValue(SETTING_AD_DECAY) * 8);
   uint32_t ad_value = envelope[osc_id].Render();
-  
+
   // if (false){//ui.paques()) {
   //   osc[osc_id].set_shape(MACRO_OSC_SHAPE_QUESTION_MARK);
   // } else if (settings[osc_id].meta_modulation()) {
@@ -230,7 +230,7 @@ void RenderBlock(int osc_id) {
   // } else {
   osc[osc_id].set_shape(settings[osc_id].shape());
   // }
-  
+
   // Set timbre and color: CV + internal modulation.
   uint16_t parameters[2];
   for (uint16_t i = 0; i < 2; ++i) {
@@ -241,7 +241,7 @@ void RenderBlock(int osc_id) {
     parameters[i] = value;
   }
   osc[osc_id].set_parameters(parameters[0], parameters[1]);
-  
+
   // // Apply hysteresis to ADC reading to prevent a single bit error to move
   // // the quantized pitch up and down the quantization boundary.
   // int32_t pitch = quantizer.Process(
@@ -259,17 +259,17 @@ void RenderBlock(int osc_id) {
   //   trigger_detected_flag = true;
   // }
   previous_pitch[osc_id] = pitch;
-  
+
   //pitch += jitter_source.Render(settings[osc_id].vco_drift());
   //pitch += internal_adc.value() >> 8;
   pitch += ad_value * settings[osc_id].GetValue(SETTING_AD_FM) >> 7;
-  
+
   if (pitch > 16383) {
     pitch = 16383;
   } else if (pitch < 0) {
     pitch = 0;
   }
-  
+
   if (settings[osc_id].vco_flatten()) {
     pitch = Interpolate88(lut_vco_detune, pitch << 2);
   }
@@ -281,19 +281,19 @@ void RenderBlock(int osc_id) {
     //ui.StepMarquee();
     trigger_flag[osc_id] = false;
   }
-  
+
   uint8_t* sync_buffer = sync_samples[osc_id];
   int16_t* render_buffer = audio_samples[osc_id];
-  
+
   if (settings[osc_id].GetValue(SETTING_AD_VCA) != 0
     || settings[osc_id].GetValue(SETTING_AD_TIMBRE) != 0
     || settings[osc_id].GetValue(SETTING_AD_COLOR) != 0
     || settings[osc_id].GetValue(SETTING_AD_FM) != 0) {
     memset(sync_buffer, 0, kBlockSize);
   }
-  
+
   osc[osc_id].Render(sync_buffer, render_buffer, kBlockSize);
-  
+
   // Copy to DAC buffer with sample rate and bit reduction applied.
   int16_t sample = 0;
   size_t decimation_factor = decimation_factors[settings[osc_id].data().sample_rate];
@@ -330,13 +330,13 @@ int main(void) {
     const uint8_t  kind = (uint8_t)(data & 0b1111);
 
     switch (kind) {
-    case 1:{ // Out_Buffer 
+    case 1:{ // Out_Buffer
         break;
     }
     case 2: { // In_Buffer
-        
+
         const uint32_t offset     = (data >> 8) & 0xFFFFFF;
-        const uint8_t  size       = (uint8_t)((data >> 4) & 0b1111); 
+        const uint8_t  size       = (uint8_t)((data >> 4) & 0b1111);
         const int      buffer_len = 1 << size;
               int16_t *buffer     = (int16_t *)(RAM_BASE + offset);
              uint16_t *ubuffer    = (uint16_t *)buffer;
@@ -347,7 +347,7 @@ int main(void) {
             for (int osc_id = 0; osc_id < NBR_OF_OSCs; osc_id++) {
 
                 RenderBlock(osc_id);
-                
+
                 int16_t* render_buffer = audio_samples[osc_id];
                 for (int y = 0; y < kBlockSize; y++) {
                     mix_buffer[y] += render_buffer[y] / NBR_OF_OSCs;
@@ -356,9 +356,9 @@ int main(void) {
 
             for (int y = 0; y < kBlockSize; y++, x++) {
                 if (mix_buffer[y] > 32767) {
-                    mix_buffer[y] = 32767; 
+                    mix_buffer[y] = 32767;
                 }  else if (mix_buffer[y] < -32768) {
-                    mix_buffer[y] = -32768; 
+                    mix_buffer[y] = -32768;
                 }
                 ubuffer[x] = (uint16_t)(mix_buffer[y] + 0x8000) >> SAMPLE_BITS_TO_DISCARD;
             }
@@ -374,20 +374,33 @@ int main(void) {
         uint8_t  key  = (midi >> 8)  & 0xFF;
         uint8_t  val  = (midi >> 16)  & 0xFF;
 
-        if (chan < NBR_OF_OSCs) {
-            switch (kind) {
-            case 0b1000:{// Note off
-                break;
+        switch (kind) {
+        case 0b1000:{// Note off
+            break;
+        }
+        case 0b1001:{// Note on
+
+            if (chan >= NBR_OF_OSCs) {
+                //  The last channel is used to polyphony (round-robin)
+                static uint8_t rr_next_chan = 0;
+
+                chan = rr_next_chan;
+                rr_next_chan = (rr_next_chan + 1) % NBR_OF_OSCs;
             }
-            case 0b1001:{// Note on
+
+            if (chan < NBR_OF_OSCs) {
                 trigger_flag[chan] = true;
 
-                //  FIXME?: Why this 24 offset in MIDI notes?
+                //      FIXME?: Why this 24 offset in MIDI notes?
                 midi_pitch[chan] = (((int32_t)key) << 7) - 24;
-                break;
-                
+
             }
-            case 0b1011:{// Control change
+
+            break;
+
+        }
+        case 0b1011:{// Control change
+            if (chan < NBR_OF_OSCs) {
                 switch (key) {
                 case 0:{
                     cc_params[chan][0] = (int32_t)val * (MAX_PARAM / MAX_MIDI_VAL);
@@ -420,16 +433,16 @@ int main(void) {
                     break;
                 }
                 default:{
-                }
                     break;
                 }
-            }
-            default:{
-                break;
-            }
+                }
             }
         }
-            
+        default:{
+            break;
+        }
+    }
+
         break;
     }
     default: {

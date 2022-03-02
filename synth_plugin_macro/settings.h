@@ -31,7 +31,7 @@
 
 #include "stmlib.h"
 
-#define NBR_OF_OSCs 5
+#define NBR_OF_OSCs 3
 
 namespace braids {
 

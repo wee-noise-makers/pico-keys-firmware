@@ -43,7 +43,7 @@ static const size_t kWGNeckLength = 4096;
 static const size_t kWGBoreLength = 2048;
 static const size_t kWGJetLength = 1024;
 static const size_t kWGFBoreLength = 4096;
-static const size_t kCombDelayLength = 4096;//8192;
+static const size_t kCombDelayLength = 8192;
 
 static const size_t kNumFormants = 5;
 static const size_t kNumPluckVoices = 3;
