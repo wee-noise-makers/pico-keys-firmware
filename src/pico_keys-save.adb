@@ -41,8 +41,10 @@ package body Pico_Keys.Save is
             Dst : Storage_Array (1 .. Save_State'Object_Size / 8)
               with Address => RAM_State'Address;
          begin
-            Dst := Src;
             --  RAM_State := Flash_State;
+            Dst := Src;
+
+            Pico_Keys.Synth_UI.Update_All_Parameters;
          end;
       end if;
    end Load_From_Flash;

@@ -6,6 +6,13 @@ with Pico_Keys.LEDs;
 
 package body Pico_Keys.Synth_UI is
 
+   Param_Shape     : constant Param_Id := 2;
+
+   Param_Attack    : constant Param_Id := 4;
+   Param_Decay     : constant Param_Id := 5;
+   Param_Color_Env : constant Param_Id := 6;
+
+
    Params : All_Synth_Parameters renames Save.RAM_State.Synth_Params;
 
    Plus_Btn : constant array (Param_Id) of Button_ID :=
@@ -99,6 +106,14 @@ package body Pico_Keys.Synth_UI is
    end Update_All_Parameters;
 
 begin
-   Params (0)(0) := MIDI.MIDI_Data'Last / 2;
-   Params (0)(1) := MIDI.MIDI_Data'Last / 2;
+   --  Set default values
+   for Id in Synth_Id loop
+      Params (Id)(0) := 0;
+      Params (Id)(1) := 0;
+      Params (Id)(Param_Shape) := UInt8 (Id) * 2;
+      Params (Id)(3) := 0;
+      Params (Id)(Param_Attack) := 0;
+      Params (Id)(Param_Decay) := 5;
+      Params (Id)(Param_Color_Env) := 0;
+   end loop;
 end Pico_Keys.Synth_UI;

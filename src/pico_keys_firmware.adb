@@ -61,6 +61,7 @@ procedure Pico_Keys_Firmware is
 begin
 
    Pico_Keys.Synth_Plugin.Start;
+   Pico_Keys.Synth_UI.Update_All_Parameters;
 
    --  Set Gen 2 to seq
    Generators (2).Next_Meta;
@@ -71,6 +72,8 @@ begin
 
    --  Load a previous save, if there's one in flash
    Pico_Keys.Save.Load_From_Flash;
+
+   Pico_Keys.Synth_UI.Update_All_Parameters;
 
    loop
       Now := Clock;
