@@ -381,7 +381,9 @@ int main(void) {
             }
             case 0b1001:{// Note on
                 trigger_flag[chan] = true;
-                midi_pitch[chan] = ((int32_t)key) << 7;
+
+                //  FIXME?: Why this 24 offset in MIDI notes?
+                midi_pitch[chan] = (((int32_t)key) << 7) - 24;
                 break;
                 
             }
