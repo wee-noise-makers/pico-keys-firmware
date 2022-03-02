@@ -40,8 +40,8 @@ using namespace stmlib;
 const SettingsData kInitSettings = {
   MACRO_OSC_SHAPE_VOWEL,
   
-  RESOLUTION_8_BIT,
-  SAMPLE_RATE_32k,
+  RESOLUTION_16_BIT,
+  SAMPLE_RATE_96K,
   
   0,  // AD->timbre
   false,  // Trig source
@@ -60,7 +60,7 @@ const SettingsData kInitSettings = {
   5,  // AD decay
   0,  // AD->FM
   0,  // AD->COLOR
-  0,  // AD->VCA
+  1,  // AD->VCA
   0,  // Quantizer root
   
   50,
@@ -69,7 +69,7 @@ const SettingsData kInitSettings = {
   
   { 0, 0 },
   { 32768, 32768 },
-  "GREETINGS FROM MUTABLE INSTRUMENTS *EDIT ME*",
+  // "GREETINGS FROM MUTABLE INSTRUMENTS *EDIT ME*",
 };
 
 //Storage<0x8020000, 4> storage;
@@ -88,7 +88,7 @@ void Settings::Init() {
         value >= setting_metadata.min_value && \
         value <= setting_metadata.max_value;
   }
-  settings_within_range = settings_within_range && data_.magic_byte == 'M';
+  // settings_within_range = settings_within_range && data_.magic_byte == 'M';
   for (int i = 0; i < 2; ++i) {
     settings_within_range = settings_within_range && \
         data_.parameter_cv_scale[i] > 16384;
@@ -100,23 +100,23 @@ void Settings::Init() {
   if (!settings_within_range) {
     Reset();
   }
-  CheckPaques();
+  // CheckPaques();
 }
 
 void Settings::Reset() {
   memcpy(&data_, &kInitSettings, sizeof(SettingsData));
-  data_.magic_byte = 'M';
+  // data_.magic_byte = 'M';
 }
 
 void Settings::Save() {
-  data_.magic_byte = 'M';
+  // data_.magic_byte = 'M';
   // storage.ParsimoniousSave(data_, &version_token_);
-  CheckPaques();
+  // CheckPaques();
 }
 
-void Settings::CheckPaques() {
-  paques_ = !strcmp(data_.marquee_text, "49");
-}
+// void Settings::CheckPaques() {
+//   paques_ = !strcmp(data_.marquee_text, "49");
+// }
 
 const char* const boolean_values[] = { "OFF ", "ON " };
 const char* const intensity_values[] = {
@@ -331,8 +331,8 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 11, "ROOT", note_values },
   { 0, 0, "CAL.", NULL },
   { 0, 0, "    ", NULL },  // Placeholder for CV tester
-  { 0, 0, "    ", NULL },  // Placeholder for marquee
-  { 0, 0, "v1.9", NULL },  // Placeholder for version string
+  // { 0, 0, "    ", NULL },  // Placeholder for marquee
+  // { 0, 0, "v1.9", NULL },  // Placeholder for version string
 };
 
 /* static */
@@ -359,11 +359,11 @@ const Setting Settings::settings_order_[] = {
   SETTING_BRIGHTNESS,
   SETTING_CALIBRATION,
   SETTING_CV_TESTER,
-  SETTING_MARQUEE,
-  SETTING_VERSION,
+  // SETTING_MARQUEE,
+  // SETTING_VERSION,
 };
 
 /* extern */
-Settings settings;
+Settings settings[NBR_OF_OSCs];
 
 }  // namespace braids

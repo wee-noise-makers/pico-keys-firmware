@@ -102,6 +102,22 @@ _startup_clear_bss:
 1:
         .size _startup_clear_bss, . - _startup_clear_bss
 
+	/* Clear .SCRATCH_X_bss */
+	.thumb_func
+_startup_clear_SCRATCH_X_bss:
+	ldr	r0,=__SCRATCH_X_bss_start
+	ldr	r1,=__SCRATCH_X_bss_words
+	movs	r2,#0
+	cmp     r1,#0
+	beq     1f
+0:	str	r2,[r0]
+        adds    r0,#4
+	subs	r1,r1,#1
+	bne	0b
+1:
+        .size _startup_clear_SCRATCH_X_bss, . - _startup_clear_SCRATCH_X_bss
+
+
 #if !defined(__SOFTFP__)
         /**************/
         /* Enable FPU */

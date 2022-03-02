@@ -21,16 +21,20 @@ project Synth_Plugin is
       for CPU_Name use "cortex-m0p";
       --  for Number_Of_Interrupts use "25";
 
-      for Memories use ("RAM");
+      for Memories use ("RAM", "SCRATCH_X");
 
       for Boot_Memory use "RAM";
 
-      for Main_Stack_Memory use "RAM";
-      for Main_Stack_Size use "2K";
+      for Main_Stack_Memory use "SCRATCH_X";
+      for Main_Stack_Size use "4K";
 
       for Mem_Kind ("RAM") use "RAM";
-      for Address ("RAM")  use "16#20027000#";
-      for Size ("RAM")     use "100K";
+      for Address  ("RAM") use "16#2001A800#";
+      for Size     ("RAM") use "150K";
+
+      for Mem_Kind ("SCRATCH_X") use "RAM";
+      for Address  ("SCRATCH_X") use "16#20040000#";
+      for Size     ("SCRATCH_X") use "4K";
 
    end Device_Configuration;
 

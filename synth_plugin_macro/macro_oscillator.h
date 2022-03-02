@@ -38,7 +38,7 @@
 #include "resources.h"
 #include "settings.h"
 
-#define MAX_RENDER_BUFFER_SIZE 1024
+#define MAX_RENDER_BUFFER_SIZE 64
 
 namespace braids {
   
@@ -101,12 +101,13 @@ class MacroOscillator {
   int16_t parameter_[2];
   int16_t previous_parameter_[2];
   int16_t pitch_;
-  uint8_t sync_buffer_[MAX_RENDER_BUFFER_SIZE];
-  int16_t temp_buffer_[MAX_RENDER_BUFFER_SIZE];
   int32_t lp_state_;
   
   AnalogOscillator analog_oscillator_[3];
   DigitalOscillator digital_oscillator_;
+
+  int16_t temp_buffer_[MAX_RENDER_BUFFER_SIZE];
+  uint8_t sync_buffer_[MAX_RENDER_BUFFER_SIZE];
   
   MacroOscillatorShape shape_;
   static RenderFn fn_table_[];

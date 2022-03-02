@@ -15,7 +15,7 @@ package body Pico_Keys.Synth_Plugin is
 
    CRC : constant HAL.UInt32 := 0;
 
-   Audio_Buffer_Len : constant := 2**10;
+   Audio_Buffer_Len : constant := 64;
    Audio_Buffer_A : UInt16_Array (1 .. Audio_Buffer_Len);
    Audio_Buffer_B : UInt16_Array (1 .. Audio_Buffer_Len);
    Playing       : System.Address := Audio_Buffer_A'Address;
@@ -34,6 +34,10 @@ package body Pico_Keys.Synth_Plugin is
       Plugin_Area_Size  : constant := 150 * 1024;
       Plugin_Area_Start : constant := RAM_Base + RAM_Size - Plugin_Area_Size;
       Plugin_Area_End   : constant := Plugin_Area_Start + Plugin_Area_Size;
+
+      Scartch_X_Size  : constant := 4 * 1024;
+      Scartch_X_Start : constant := 16#20040000#;
+      Scartch_X_End   : constant := Scartch_X_Start + Scartch_X_Size;
 
       Plugin_Vect : UInt32_Array (1 .. 2)
         with Address => System'To_Address (Plugin_Area_Start);
@@ -77,7 +81,10 @@ package body Pico_Keys.Synth_Plugin is
          SP   : constant UInt32 := Plugin_Vect (1);
          Ent  : constant UInt32 := Plugin_Vect (2);
       begin
-         if SP not in Plugin_Area_Start .. Plugin_Area_End then
+         if SP not in Plugin_Area_Start .. Plugin_Area_End
+           and then
+            SP not in Scartch_X_Start .. Scartch_X_End
+         then
             raise Program_Error;
          end if;
 
@@ -86,9 +93,9 @@ package body Pico_Keys.Synth_Plugin is
          end if;
 
          RP.Multicore.Launch_Core1
-           (Trap_Vect => Vect,
-            SP        => SP,
-            Ent       => Ent);
+           (Trap_Vect   => Vect,
+            SP          => SP,
+            Entry_Point => Ent);
       end;
 
       Pico_Keys.Audio.Set_Handler (Audio_Handler'Access);

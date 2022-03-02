@@ -31,6 +31,8 @@
 
 #include "stmlib.h"
 
+#define NBR_OF_OSCs 5
+
 namespace braids {
 
 enum MacroOscillatorShape {
@@ -152,8 +154,8 @@ enum Setting {
   // Not settings per-se, but used for menu display!
   SETTING_CALIBRATION,
   SETTING_CV_TESTER,
-  SETTING_MARQUEE,
-  SETTING_VERSION,
+  /* SETTING_MARQUEE, */
+  /* SETTING_VERSION, */
   SETTING_LAST
 };
 
@@ -186,8 +188,8 @@ struct SettingsData {
   int16_t parameter_cv_offset[2];
   uint16_t parameter_cv_scale[2];
   
-  char marquee_text[55];
-  char magic_byte;
+  /* char marquee_text[55]; */
+  /* char magic_byte; */
 };
 
 struct SettingMetadata {
@@ -262,13 +264,13 @@ class Settings {
     return data_.quantizer_root;
   }
   
-  inline const char* marquee_text() const {
-    return data_.marquee_text;
-  }
+  /* inline const char* marquee_text() const { */
+  /*   return data_.marquee_text; */
+  /* } */
   
-  inline char* mutable_marquee_text() {
-    return data_.marquee_text;
-  }
+  /* inline char* mutable_marquee_text() { */
+  /*   return data_.marquee_text; */
+  /* } */
   
   inline const SettingsData& data() const { return data_; }
   inline SettingsData* mutable_data() { return &data_; }
@@ -356,7 +358,7 @@ class Settings {
   }
   
  private:
-  void CheckPaques();
+  /* void CheckPaques(); */
 
   SettingsData data_;
   
@@ -369,7 +371,7 @@ class Settings {
   DISALLOW_COPY_AND_ASSIGN(Settings);
 };
 
-extern Settings settings;
+extern Settings settings[NBR_OF_OSCs];
 
 }  // namespace braids
 

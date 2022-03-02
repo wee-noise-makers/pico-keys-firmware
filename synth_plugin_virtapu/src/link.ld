@@ -6,13 +6,14 @@
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 
-_DEFAULT_STACK_SIZE = 0x800;
+_DEFAULT_STACK_SIZE = 0x1000;
 
 ENTRY(Reset_Handler);
 
 MEMORY
 {
-  RAM (rwx) : ORIGIN = 0x20027000, LENGTH = 0x19000
+  RAM (rwx) : ORIGIN = 0x2001A800, LENGTH = 0x25800
+  SCRATCH_X (rwx) : ORIGIN = 0x20040000, LENGTH = 0x1000
 }
 
 /*
@@ -31,6 +32,8 @@ SECTIONS
     KEEP (*(.vectors))
     *(.text .text.* .gnu.linkonce.t*)
     *(.gnu.warning)
+    KEEP (*(.init))
+    KEEP (*(.fini))
   } > RAM
 
   .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } > RAM
@@ -108,6 +111,41 @@ SECTIONS
    . = ALIGN(0x8);    /* Align the stack to 64 bits */
    __bss_end = .;
 
+
+   _end = .;
+   __heap_start = .;
+   __heap_end = ORIGIN(RAM) + LENGTH(RAM);
+  } > RAM
+  __bss_words = (__bss_end - __bss_start) >> 2;
+  /**************/
+  /* End of RAM */
+  /**************/
+
+  /*************/
+  /* SCRATCH_X */
+  /*************/
+  __SCRATCH_X_data_load = LOADADDR(.SCRATCH_X_data);
+  .SCRATCH_X_data :
+  {
+    __SCRATCH_X_data_start = .;
+    *(.SCRATCH_X_data .SCRATCH_X_data.*)
+
+    /* Ensure that the end of the data section is always word aligned.
+       Initial values are stored in 4-bytes blocks so we must guarantee
+       that these blocks do not fall out the section (otherwise they are
+       truncated and the initial data for the last block are lost). */
+
+    . = ALIGN(0x4);
+    __SCRATCH_X_data_end = .;
+  } >  SCRATCH_X AT> RAM
+  __SCRATCH_X_data_words = (__SCRATCH_X_data_end - __SCRATCH_X_data_start) >> 2;
+
+  .SCRATCH_X_bss (NOLOAD): {
+    . = ALIGN(0x8);
+    __SCRATCH_X_bss_start = .;
+
+    *(.SCRATCH_X_bss .SCRATCH_X_bss.*)
+
     __interrupt_stack_start = .;
     *(.interrupt_stacks)
     . = ALIGN(0x8);
@@ -118,14 +156,14 @@ SECTIONS
     . = ALIGN(0x8);
     __stack_end = .;
 
-   _end = .;
-   __heap_start = .;
-   __heap_end = ORIGIN(RAM) + LENGTH(RAM);
-  } > RAM
-  __bss_words = (__bss_end - __bss_start) >> 2;
-  /**************/
-  /* End of RAM */
-  /**************/
+    __SCRATCH_X_bss_end = .;
+    __SCRATCH_X_heap_start = .;
+    __SCRATCH_X_heap_end = ORIGIN(SCRATCH_X) + LENGTH(SCRATCH_X);
+  } > SCRATCH_X
+  __SCRATCH_X_bss_words = (__SCRATCH_X_bss_end - __SCRATCH_X_bss_start) >> 2;
+  /********************/
+  /* End of SCRATCH_X */
+  /********************/
 
   /* DWARF debug sections.
      Symbols in the DWARF debugging sections are relative to the beginning

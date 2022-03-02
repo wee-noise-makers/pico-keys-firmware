@@ -2,6 +2,7 @@ with HAL; use HAL;
 
 with Pico_Keys.Save;
 with Pico_Keys.Buttons;
+with Pico_Keys.LEDs;
 
 package body Pico_Keys.Synth_UI is
 
@@ -24,6 +25,15 @@ package body Pico_Keys.Synth_UI is
       4 => Btn_G,
       5 => Btn_B,
       6 => Btn_D2);
+
+   Current_Synth : Synth_Id := Synth_Id'First;
+
+   Synth_Btn : constant array (Synth_Id) of Pico_Keys.Button_ID
+     := (0 => Btn_G1,
+         1 => Btn_G2,
+         2 => Btn_G3);
+
+   Selectd_Hue : constant LEDs.Hue := LEDs.Blue;
 
    ---------------
    -- Inc_Param --
@@ -55,13 +65,22 @@ package body Pico_Keys.Synth_UI is
       pragma Unreferenced (Now);
    begin
 
+      for Sid in Synth_Id loop
+         if Buttons.Falling (Synth_Btn (Sid)) then
+            Current_Synth := Sid;
+            exit;
+         end if;
+      end loop;
+
+      LEDS.Set_Hue (Synth_Btn (Current_Synth), Selectd_Hue);
+
       for Id in Param_Id loop
          if Buttons.Falling (Plus_Btn (Id)) then
-            Inc_Param (0, Id);
-            MIDI.Send_CC (0, Id, Params (0)(Id));
+            Inc_Param (Current_Synth, Id);
+            MIDI.Send_CC (Current_Synth, Id, Params (Current_Synth)(Id));
          elsif Buttons.Falling (Minus_Btn (Id)) then
-            Dec_Param (0, Id);
-            MIDI.Send_CC (0, Id, Params (0)(Id));
+            Dec_Param (Current_Synth, Id);
+            MIDI.Send_CC (Current_Synth, Id, Params (Current_Synth)(Id));
          end if;
       end loop;
    end Process_Keys;
