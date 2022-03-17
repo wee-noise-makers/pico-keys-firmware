@@ -24,7 +24,7 @@ procedure Pico_Keys_Firmware is
          2 => Btn_G2,
          3 => Btn_G3);
 
-   Arp_Hue      : constant LEDs.Hue := LEDs.Blue;
+   Arp_Hue      : constant LEDs.Hue := LEDs.Cyan;
    Beat_Hue     : constant LEDs.Hue := LEDs.Green;
    Triplet_Hue  : constant LEDs.Hue := LEDs.Orange;
    Seq_Hue      : constant LEDs.Hue := LEDs.Red;
@@ -130,9 +130,9 @@ begin
             --  Time Div LED
             if On_Time (Generators (Current_Gen).Division, Step) then
                if Generators (Current_Gen).Division in Div_4 .. Div_32 then
-                  LEDS.Set_Hue (Btn_Time_Div, Beat_Hue);
+                  LEDS.Set_Hue (Btn_Time_Div, Beat_Hue, LEDs.Fade);
                else
-                  LEDS.Set_Hue (Btn_Time_Div, Triplet_Hue);
+                  LEDS.Set_Hue (Btn_Time_Div, Triplet_Hue, LEDs.Fade);
                end if;
             end if;
 
@@ -164,9 +164,14 @@ begin
 
             --  BPM +/-
             if Buttons.Falling (Btn_BPM_Plus) and then BPM < Max_BPM then
-               BPM := BPM + 10;
+               BPM := BPM + 5;
             elsif Buttons.Falling (Btn_BPM_Minus) and then BPM > Min_BPM then
-               BPM := BPM - 10;
+               BPM := BPM - 5;
+            end if;
+
+            if Pico_Keys.On_Time (Pico_Keys.Div_4, Step) then
+               LEDS.Set_Hue (Btn_BPM_Plus, Beat_Hue, LEDs.Fade);
+               LEDS.Set_Hue (Btn_BPM_Minus, Beat_Hue, LEDs.Fade);
             end if;
 
             --  ARP Mode select
@@ -326,7 +331,7 @@ begin
             when Key =>
                for Id in Note_Button_ID loop
                   if Buttons.Pressed (Id) then
-                     LEDs.Set_Hue (Id, Keyboard_Hue);
+                     LEDs.Set_Hue (Id, Keyboard_Hue, LEDs.Fade);
                   end if;
                end loop;
 
@@ -357,7 +362,7 @@ begin
 
          LEDs.Update;
 
-         Next_UI_Trig := Next_UI_Trig + Time (Ticks_Per_Second / 60);
+         Next_UI_Trig := Next_UI_Trig + Time (Ticks_Per_Second / 120);
       end if;
    end loop;
 end Pico_Keys_Firmware;

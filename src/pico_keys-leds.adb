@@ -18,6 +18,12 @@ package body Pico_Keys.LEDs is
                                             WS2812_SM,
                                             Number_Of_LEDs);
 
+   Fade_Step : constant := 7;
+
+   Fade_On    : array (Button_ID) of Boolean := (others => False);
+   Fade_Hue   : array (Button_ID) of Hue := (others => 0);
+   Fade_Value : array (Button_ID) of UInt8 := (others => 0);
+
    Button_To_LED : constant array (Button_ID) of LED_ID :=
      (Btn_C    => 9,
       Btn_Cs   => 8,
@@ -76,6 +82,18 @@ package body Pico_Keys.LEDs is
    procedure Update is
    begin
       Step_Cnt := Step_Cnt + 1;
+
+      for Id in Button_ID loop
+         if Fade_On (Id) then
+            if Fade_Value (Id) < Fade_Step then
+               Fade_On (Id) := False;
+            else
+               Fade_Value (Id) := Fade_Value (Id) - Fade_Step;
+               Set_HSV (Id, Fade_Hue (Id), UInt8'Last, Fade_Value (Id));
+            end if;
+         end if;
+      end loop;
+
       Update (LED_Strip);
    end Update;
 
@@ -106,19 +124,30 @@ package body Pico_Keys.LEDs is
 
    procedure Set_Hue (Id : Button_ID; H : Hue; Effect : LED_Effect := None) is
    begin
+
+      Fade_On (Id) := False;
+
       case Effect is
          when None =>
             Set_HSV (Id, H, UInt8'Last, UInt8'Last);
+
          when Blink =>
             if Blink_On then
                Set_HSV (Id, H, UInt8'Last, UInt8'Last);
             end if;
+
          when Blink_Fast =>
             if Blink_Fast_On then
                Set_HSV (Id, H, UInt8'Last, UInt8'Last);
             end if;
+
          when Dim =>
-            Set_HSV (Id, H, UInt8'Last / 4, UInt8'Last);
+            Set_HSV (Id, H, UInt8'Last, UInt8'Last / 4);
+
+         when Fade =>
+            Fade_On (Id) := True;
+            Fade_Hue (Id) := H;
+            Fade_Value (Id) := UInt8'Last;
       end case;
    end Set_Hue;
 

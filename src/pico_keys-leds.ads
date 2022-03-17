@@ -5,7 +5,7 @@ package Pico_Keys.LEDs is
    procedure Clear;
    procedure Update;
 
-   type LED_Effect is (None, Blink, Blink_Fast, Dim);
+   type LED_Effect is (None, Blink, Blink_Fast, Dim, Fade);
 
    procedure Set_RGB (Id : Button_ID; R, G, B : HAL.UInt8);
 

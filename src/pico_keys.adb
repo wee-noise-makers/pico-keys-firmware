@@ -52,6 +52,7 @@ begin
    RP.Device.Timer.Enable;
    RP.GPIO.Enable;
    RP.DMA.Enable;
+   RP.Device.PIO_0.Enable;
 
    --  Asm ("cpsie i",
    --       Volatile => True);
