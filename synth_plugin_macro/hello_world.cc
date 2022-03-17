@@ -27,24 +27,10 @@
 #include <algorithm>
 
 #include "dsp.h"
-//#include "stmlib/utils/ring_buffer.h"
-//#include "stmlib/system/system_clock.h"
-//#include "stmlib/system/uid.h"
-
-//#include "braids/drivers/adc.h"
-//#include "braids/drivers/dac.h"
-//#include "braids/drivers/debug_pin.h"
-//#include "braids/drivers/gate_input.h"
-//#include "braids/drivers/internal_adc.h"
-//#include "braids/drivers/system.h"
 #include "envelope.h"
 #include "macro_oscillator.h"
-//#include "quantizer.h"
 #include "signature_waveshaper.h"
 #include "vco_jitter_source.h"
-//#include "ui.h"
-
-//#include "quantizer_scales.h"
 
 #include "plugin_interface.h"
 
@@ -54,6 +40,8 @@ using namespace braids;
 using namespace std;
 using namespace stmlib;
 
+#define MAX_MIDI_VAL (15)
+#define MAX_PARAM (32767)
 
 const size_t kBlockSize = MAX_RENDER_BUFFER_SIZE;
 
@@ -61,29 +49,74 @@ MacroOscillator osc[NBR_OF_OSCs];
 Envelope envelope[NBR_OF_OSCs];
 SignatureWaveshaper ws[NBR_OF_OSCs];
 int32_t midi_pitch[NBR_OF_OSCs] = {48 << 7};
+uint16_t volume[NBR_OF_OSCs] = {MAX_PARAM};
 
-#define MAX_MIDI_VAL (15)
-#define MAX_PARAM (32767)
 int32_t cc_params[NBR_OF_OSCs][2] = {{MAX_PARAM / 2}};
 
-// Adc adc;
-// Dac dac;
-// DebugPin debug_pin;
-// GateInput gate_input;
-// InternalAdc internal_adc;
-//Quantizer quantizer;
-// System sys;
-// VcoJitterSource jitter_source;
-// Ui ui;
+const MacroOscillatorShape shape_from_param[MAX_MIDI_VAL] =
+{
+    // MACRO_OSC_SHAPE_CSAW,
+    // MACRO_OSC_SHAPE_MORPH,
+    // MACRO_OSC_SHAPE_SAW_SQUARE,
+    // MACRO_OSC_SHAPE_SINE_TRIANGLE,
+    // MACRO_OSC_SHAPE_BUZZ,
 
-// uint8_t current_scale = 0xff;
-// size_t current_sample;
+    MACRO_OSC_SHAPE_SQUARE_SUB,
+    MACRO_OSC_SHAPE_SAW_SUB,
+    // MACRO_OSC_SHAPE_SQUARE_SYNC,
+    // MACRO_OSC_SHAPE_SAW_SYNC,
+    MACRO_OSC_SHAPE_TRIPLE_SAW,
+    MACRO_OSC_SHAPE_TRIPLE_SQUARE,
+    MACRO_OSC_SHAPE_TRIPLE_TRIANGLE,
+    MACRO_OSC_SHAPE_TRIPLE_SINE,
+    // MACRO_OSC_SHAPE_TRIPLE_RING_MOD,
+    // MACRO_OSC_SHAPE_SAW_SWARM,
+    // MACRO_OSC_SHAPE_SAW_COMB,
+    // MACRO_OSC_SHAPE_TOY,
+
+    // MACRO_OSC_SHAPE_DIGITAL_FILTER_LP,
+    // MACRO_OSC_SHAPE_DIGITAL_FILTER_PK,
+    // MACRO_OSC_SHAPE_DIGITAL_FILTER_BP,
+    // MACRO_OSC_SHAPE_DIGITAL_FILTER_HP,
+    // MACRO_OSC_SHAPE_VOSIM,
+    MACRO_OSC_SHAPE_VOWEL,
+    // MACRO_OSC_SHAPE_VOWEL_FOF,
+
+    // MACRO_OSC_SHAPE_HARMONICS,
+
+    MACRO_OSC_SHAPE_FM,
+    // MACRO_OSC_SHAPE_FEEDBACK_FM,
+    // MACRO_OSC_SHAPE_CHAOTIC_FEEDBACK_FM,
+
+    MACRO_OSC_SHAPE_PLUCKED,
+    MACRO_OSC_SHAPE_BOWED,
+    MACRO_OSC_SHAPE_BLOWN,
+    MACRO_OSC_SHAPE_FLUTED,
+    // MACRO_OSC_SHAPE_STRUCK_BELL,
+    // MACRO_OSC_SHAPE_STRUCK_DRUM,
+    // MACRO_OSC_SHAPE_KICK,
+    // MACRO_OSC_SHAPE_CYMBAL,
+    // MACRO_OSC_SHAPE_SNARE,
+
+    // MACRO_OSC_SHAPE_WAVETABLES,
+    // MACRO_OSC_SHAPE_WAVE_MAP,
+    // MACRO_OSC_SHAPE_WAVE_LINE,
+    MACRO_OSC_SHAPE_WAVE_PARAPHONIC,
+
+    MACRO_OSC_SHAPE_FILTERED_NOISE,
+    MACRO_OSC_SHAPE_TWIN_PEAKS_NOISE,
+    // MACRO_OSC_SHAPE_CLOCKED_NOISE,
+    // MACRO_OSC_SHAPE_GRANULAR_CLOUD,
+    // MACRO_OSC_SHAPE_PARTICLE_NOISE,
+
+    // MACRO_OSC_SHAPE_DIGITAL_MODULATION
+};
+
 int16_t audio_samples[NBR_OF_OSCs][kBlockSize];
 uint8_t sync_samples[NBR_OF_OSCs][kBlockSize];
 
 // bool trigger_detected_flag;
 volatile bool trigger_flag[NBR_OF_OSCs];
-// uint16_t trigger_delay;
 
 extern "C" {
 
@@ -110,77 +143,20 @@ extern "C"{
     void __register_exitproc() {
     }}
 
-// extern "C" {
-
-// void SysTick_Handler() {
-//   ui.Poll();
-// }
-
-// void TIM1_UP_IRQHandler(void) {
-//   if (!(TIM1->SR & TIM_IT_Update)) {
-//     return;
-//   }
-//   TIM1->SR = (uint16_t)~TIM_IT_Update;
-
-//   dac.Write(-audio_samples[playback_block][current_sample] + 32768);
-
-//   bool trigger_detected = gate_input.raised();
-//   sync_samples[playback_block][current_sample] = trigger_detected;
-//   trigger_detected_flag = trigger_detected_flag | trigger_detected;
-
-//   current_sample = current_sample + 1;
-//   if (current_sample >= kBlockSize) {
-//     current_sample = 0;
-//     playback_block = (playback_block + 1) % kNumBlocks;
-//   }
-
-//   bool adc_scan_cycle_complete = adc.PipelinedScan();
-//   if (adc_scan_cycle_complete) {
-//     ui.UpdateCv(adc.channel(0), adc.channel(1), adc.channel(2), adc.channel(3));
-//     if (trigger_detected_flag) {
-//       trigger_delay = settings.trig_delay()
-//           ? (1 << settings.trig_delay()) : 0;
-//       ++trigger_delay;
-//       trigger_detected_flag = false;
-//     }
-//     if (trigger_delay) {
-//       --trigger_delay;
-//       if (trigger_delay == 0) {
-//         trigger_flag = true;
-//       }
-//     }
-//   }
-// }
-
-// }
 
 void Init() {
-  // sys.Init(F_CPU / 96000 - 1, true);
-  // ui.Init();
-//   system_clock.Init();
-//   adc.Init(false);
-//   gate_input.Init();
-// #ifdef PROFILE_RENDER
-//   debug_pin.Init();
-// #endif
-//   dac.Init();
+
   for (int i = 0; i < NBR_OF_OSCs; i++){
       settings[i].Init();
       osc[i].Init();
       envelope[i].Init();
       ws[i].Init(42000 * (i + 1));
   }
-  //quantizer.Init();
-  // internal_adc.Init();
 
   for (size_t i = 0; i < NBR_OF_OSCs; ++i) {
     fill(&audio_samples[i][0], &audio_samples[i][kBlockSize], 0);
     fill(&sync_samples[i][0], &sync_samples[i][kBlockSize], 0);
   }
-  // current_sample = 0;
-
-  // jitter_source.Init();
-  // sys.StartTimers();
 }
 
 const uint16_t bit_reduction_masks[] = {
@@ -196,7 +172,6 @@ const uint16_t decimation_factors[] = { 24, 12, 6, 4, 3, 2, 1 };
 
 void RenderBlock(int osc_id) {
   static int16_t previous_pitch[NBR_OF_OSCs] = {0};
-  // static int16_t previous_shape[NBR_OF_OSCs] = 0;
   static uint16_t gain_lp[NBR_OF_OSCs];
 
 #ifdef PROFILE_RENDER
@@ -207,29 +182,7 @@ void RenderBlock(int osc_id) {
       settings[osc_id].GetValue(SETTING_AD_DECAY) * 8);
   uint32_t ad_value = envelope[osc_id].Render();
 
-  // if (false){//ui.paques()) {
-  //   osc[osc_id].set_shape(MACRO_OSC_SHAPE_QUESTION_MARK);
-  // } else if (settings[osc_id].meta_modulation()) {
-  //   int16_t shape = 0;//adc.channel(3);
-  //   shape -= settings[osc_id].data().fm_cv_offset;
-  //   if (shape > previous_shape + 2 || shape < previous_shape - 2) {
-  //     previous_shape = shape;
-  //   } else {
-  //     shape = previous_shape;
-  //   }
-  //   shape = MACRO_OSC_SHAPE_LAST * shape >> 11;
-  //   shape += settings[osc_id].shape();
-  //   if (shape >= MACRO_OSC_SHAPE_LAST_ACCESSIBLE_FROM_META) {
-  //     shape = MACRO_OSC_SHAPE_LAST_ACCESSIBLE_FROM_META;
-  //   } else if (shape <= 0) {
-  //     shape = 0;
-  //   }
-  //   MacroOscillatorShape osc_shape = static_cast<MacroOscillatorShape>(shape);
-  //   osc[osc_id].set_shape(osc_shape);
-  //   //ui.set_meta_shape(osc_shape);
-  // } else {
   osc[osc_id].set_shape(settings[osc_id].shape());
-  // }
 
   // Set timbre and color: CV + internal modulation.
   uint16_t parameters[2];
@@ -242,22 +195,7 @@ void RenderBlock(int osc_id) {
   }
   osc[osc_id].set_parameters(parameters[0], parameters[1]);
 
-  // // Apply hysteresis to ADC reading to prevent a single bit error to move
-  // // the quantized pitch up and down the quantization boundary.
-  // int32_t pitch = quantizer.Process(
-  //     midi_pitch[osc_id],//settings.adc_to_pitch(adc.channel(2)),
-  //     (60 + settings[osc_id].quantizer_root()) << 7);
-  // if (!settings[osc_id].meta_modulation()) {
-  //     pitch += settings[osc_id].adc_to_fm(1000);//adc.channel(3));
-  // }
-
-  // Check if the pitch has changed to cause an auto-retrigger
   int32_t pitch = midi_pitch[osc_id];
-  // int32_t pitch_delta = pitch - previous_pitch;
-  // if (settings[osc_id].data().auto_trig &&
-  //     (pitch_delta >= 0x40 || -pitch_delta >= 0x40)) {
-  //   trigger_detected_flag = true;
-  // }
   previous_pitch[osc_id] = pitch;
 
   //pitch += jitter_source.Render(settings[osc_id].vco_drift());
@@ -278,7 +216,6 @@ void RenderBlock(int osc_id) {
   if (trigger_flag[osc_id]) {
     osc[osc_id].Strike();
     envelope[osc_id].Trigger(ENV_SEGMENT_ATTACK);
-    //ui.StepMarquee();
     trigger_flag[osc_id] = false;
   }
 
@@ -317,14 +254,6 @@ void RenderBlock(int osc_id) {
 int main(void) {
   Init();
   while (1) {
-    // if (current_scale != settings.GetValue(SETTING_QUANTIZER_SCALE)) {
-    //   current_scale = settings.GetValue(SETTING_QUANTIZER_SCALE);
-    //   quantizer.Configure(scales[current_scale]);
-    // }
-
-    // while (render_block != playback_block) {
-    //   RenderBlock();
-    // }
 
     const uint32_t data = fifo_pop_blocking();
     const uint8_t  kind = (uint8_t)(data & 0b1111);
@@ -350,7 +279,7 @@ int main(void) {
 
                 int16_t* render_buffer = audio_samples[osc_id];
                 for (int y = 0; y < kBlockSize; y++) {
-                    mix_buffer[y] += render_buffer[y] / NBR_OF_OSCs;
+                    mix_buffer[y] += render_buffer[y] * volume[osc_id] >> 16;
                 }
             }
 
@@ -391,7 +320,7 @@ int main(void) {
             if (chan < NBR_OF_OSCs) {
                 trigger_flag[chan] = true;
 
-                //      FIXME?: Why this 24 offset in MIDI notes?
+                // FIXME?: Why this 24 offset in MIDI notes?
                 midi_pitch[chan] = (((int32_t)key) << 7) - 24;
 
             }
@@ -407,29 +336,35 @@ int main(void) {
                     break;
                 }
                 case 1:{
-                    cc_params[chan][1] = (int32_t)val * (MAX_PARAM / MAX_MIDI_VAL);
+                    settings[chan].SetValue(SETTING_AD_TIMBRE, val);
                     break;
                 }
                 case 2:{
-                    if (val < MACRO_OSC_SHAPE_LAST) {
-                        settings[chan].SetValue(SETTING_OSCILLATOR_SHAPE, static_cast<MacroOscillatorShape>(val));
-                    }
+                    cc_params[chan][1] = (int32_t)val * (MAX_PARAM / MAX_MIDI_VAL);
                     break;
                 }
                 case 3:{
-                    settings[chan].SetValue(SETTING_AD_FM, val);
+                    settings[chan].SetValue(SETTING_AD_COLOR, val);
                     break;
                 }
                 case 4:{
-                    settings[chan].SetValue(SETTING_AD_ATTACK, val);
+                    if (val < MAX_MIDI_VAL) {
+                        const MacroOscillatorShape shape = shape_from_param[val];
+                        settings[chan].SetValue(SETTING_OSCILLATOR_SHAPE, shape);
+                    }
                     break;
                 }
                 case 5:{
-                    settings[chan].SetValue(SETTING_AD_DECAY, val);
+                    settings[chan].SetValue(SETTING_AD_ATTACK, val);
                     break;
                 }
                 case 6:{
-                    settings[chan].SetValue(SETTING_AD_COLOR, val);
+                    settings[chan].SetValue(SETTING_AD_DECAY, val);
+                    break;
+                }
+                case 7:{
+                    // Volume
+                    volume[chan] = val * (MAX_PARAM / MAX_MIDI_VAL);
                     break;
                 }
                 default:{

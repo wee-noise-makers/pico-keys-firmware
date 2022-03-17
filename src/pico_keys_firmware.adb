@@ -109,7 +109,11 @@ begin
 
          if Buttons.Pressed (Btn_Synth) then
 
-            Pico_Keys.Synth_UI.Process_Keys (Now);
+            Pico_Keys.Synth_UI.Process_Keys (Now,
+                                             (case Current_Gen is
+                                                 when 1 => 0,
+                                                 when 2 => 1,
+                                                 when 3 => 2));
 
          elsif Buttons.Pressed (Btn_Func) then
 

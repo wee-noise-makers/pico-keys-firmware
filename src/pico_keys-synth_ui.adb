@@ -6,41 +6,37 @@ with Pico_Keys.LEDs;
 
 package body Pico_Keys.Synth_UI is
 
-   Param_Shape     : constant Param_Id := 2;
-
-   Param_Attack    : constant Param_Id := 4;
-   Param_Decay     : constant Param_Id := 5;
-   Param_Color_Env : constant Param_Id := 6;
-
-
    Params : All_Synth_Parameters renames Save.RAM_State.Synth_Params;
 
    Plus_Btn : constant array (Param_Id) of Button_ID :=
-     (0 => Btn_Ds,
-      1 => Btn_D2s,
-      2 => Btn_D,
-      3 => Btn_F,
-      4 => Btn_A,
-      5 => Btn_C2,
-      6 => Btn_E2);
+     (Timber     => Btn_Ds,
+      Timber_Env => Btn_D,
+      Color      => Btn_D2s,
+      Color_Env  => Btn_E2,
+      Model      => Btn_F,
+      Attack     => Btn_A,
+      Decay      => Btn_C2,
+      Volume     => Btn_Gs);
 
    Minus_Btn : constant array (Param_Id) of Button_ID :=
-     (0 => Btn_Cs,
-      1 => Btn_C2s,
-      2 => Btn_C,
-      3 => Btn_E,
-      4 => Btn_G,
-      5 => Btn_B,
-      6 => Btn_D2);
+     (Timber     => Btn_Cs,
+      Timber_Env => Btn_C,
+      Color      => Btn_C2s,
+      Color_Env  => Btn_D2,
+      Model      => Btn_E,
+      Attack     => Btn_G,
+      Decay      => Btn_B,
+      Volume     => Btn_Fs);
 
-   Current_Synth : Synth_Id := Synth_Id'First;
-
-   Synth_Btn : constant array (Synth_Id) of Pico_Keys.Button_ID
-     := (0 => Btn_G1,
-         1 => Btn_G2,
-         2 => Btn_G3);
-
-   Selectd_Hue : constant LEDs.Hue := LEDs.Blue;
+   Param_Hue : constant array (Param_Id) of LEDs.Hue :=
+     (Timber     => LEDS.Blue,
+      Timber_Env => LEDS.Cyan,
+      Color      => LEDS.Violet,
+      Color_Env  => LEDs.Pink,
+      Model      => LEDs.Red,
+      Attack     => LEDs.Green,
+      Decay      => LEDs.Orange,
+      Volume     => LEDs.Yellow);
 
    ---------------
    -- Inc_Param --
@@ -48,7 +44,7 @@ package body Pico_Keys.Synth_UI is
 
    procedure Inc_Param (S : Synth_Id; P : Param_Id) is
    begin
-      if Params (S)(P) < MIDI.MIDI_Data'Last then
+      if Params (S)(P) < Synth_Param_Value'Last then
          Params (S)(P) := Params (S)(P) + 1;
       end if;
    end Inc_Param;
@@ -59,7 +55,7 @@ package body Pico_Keys.Synth_UI is
 
    procedure Dec_Param (S : Synth_Id; P : Param_Id) is
    begin
-      if Params (S)(P) > MIDI.MIDI_Data'First then
+      if Params (S)(P) > Synth_Param_Value'First then
          Params (S)(P) := Params (S)(P) - 1;
       end if;
    end Dec_Param;
@@ -68,27 +64,40 @@ package body Pico_Keys.Synth_UI is
    -- Process_Keys --
    ------------------
 
-   procedure Process_Keys (Now : RP.Timer.Time) is
+   procedure Process_Keys (Now          : RP.Timer.Time;
+                           Select_Synth : Synth_Id)
+   is
       pragma Unreferenced (Now);
+
    begin
 
-      for Sid in Synth_Id loop
-         if Buttons.Falling (Synth_Btn (Sid)) then
-            Current_Synth := Sid;
-            exit;
-         end if;
-      end loop;
+      --  for Sid in Synth_Id loop
+      --     if Buttons.Falling (Synth_Btn (Sid)) then
+      --        Current_Synth := Sid;
+      --        exit;
+      --     end if;
+      --  end loop;
+      --
+      --  LEDS.Set_Hue (Synth_Btn (Current_Synth), Selectd_Hue);
 
-      LEDS.Set_Hue (Synth_Btn (Current_Synth), Selectd_Hue);
 
       for Id in Param_Id loop
          if Buttons.Falling (Plus_Btn (Id)) then
-            Inc_Param (Current_Synth, Id);
-            MIDI.Send_CC (Current_Synth, Id, Params (Current_Synth)(Id));
+            Inc_Param (Select_Synth, Id);
+            MIDI.Send_CC (Select_Synth, Id'Enum_Rep, Params (Select_Synth)(Id));
          elsif Buttons.Falling (Minus_Btn (Id)) then
-            Dec_Param (Current_Synth, Id);
-            MIDI.Send_CC (Current_Synth, Id, Params (Current_Synth)(Id));
+            Dec_Param (Select_Synth, Id);
+            MIDI.Send_CC (Select_Synth, Id'Enum_Rep, Params (Select_Synth)(Id));
          end if;
+
+         declare
+            Hue : constant LEDs.Hue := Param_Hue (Id);
+            Val : constant UInt8 :=
+              (UInt8'Last / Synth_Param_Value'Last) * UInt8(Params (Select_Synth)(Id));
+         begin
+            LEDs.Set_HSV (Plus_Btn (Id), Hue, UInt8'Last, Val);
+            LEDs.Set_HSV (Minus_Btn (Id), Hue, UInt8'Last, UInt8'Last - Val);
+         end;
       end loop;
    end Process_Keys;
 
@@ -100,7 +109,7 @@ package body Pico_Keys.Synth_UI is
    begin
       for Synth in Synth_Id loop
          for Id in Param_Id loop
-            MIDI.Send_CC (Synth, Id, Params (Synth)(Id));
+            MIDI.Send_CC (Synth, Id'Enum_Rep, Params (Synth)(Id));
          end loop;
       end loop;
    end Update_All_Parameters;
@@ -108,12 +117,13 @@ package body Pico_Keys.Synth_UI is
 begin
    --  Set default values
    for Id in Synth_Id loop
-      Params (Id)(0) := 0;
-      Params (Id)(1) := 0;
-      Params (Id)(Param_Shape) := UInt8 (Id) * 2;
-      Params (Id)(3) := 0;
-      Params (Id)(Param_Attack) := 0;
-      Params (Id)(Param_Decay) := 5;
-      Params (Id)(Param_Color_Env) := 0;
+      Params (Id)(Timber) := Synth_Param_Value'Last / 2;
+      Params (Id)(Color) := Synth_Param_Value'Last / 2;
+      Params (Id)(Color_Env) := 0;
+      Params (Id)(Timber_Env) := 0;
+      Params (Id)(Model) := Id'Enum_Rep;
+      Params (Id)(Attack) := 0;
+      Params (Id)(Decay) := 5;
+      Params (Id)(Volume) := Synth_Param_Value'Last;
    end loop;
 end Pico_Keys.Synth_UI;
