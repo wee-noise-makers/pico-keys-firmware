@@ -92,9 +92,14 @@ package body Pico_Keys.Gen_UI is
       end if;
 
       --  BPM +/-
-      if Buttons.Falling (Btn_BPM_Plus) and then BPM < Max_BPM then
+      if (Buttons.Falling (Btn_BPM_Plus) or else Buttons.Repeat (Btn_BPM_Plus))
+        and then BPM < Max_BPM
+      then
          BPM := BPM + 5;
-      elsif Buttons.Falling (Btn_BPM_Minus) and then BPM > Min_BPM then
+
+      elsif (Buttons.Falling (Btn_BPM_Minus) or else Buttons.Repeat (Btn_BPM_Minus))
+        and then BPM > Min_BPM
+      then
          BPM := BPM - 5;
       end if;
 

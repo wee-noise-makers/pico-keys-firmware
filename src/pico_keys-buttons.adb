@@ -1,4 +1,5 @@
 with RP.GPIO; use RP.GPIO;
+with RP.Timer; use RP.Timer;
 
 package body Pico_Keys.Buttons is
 
@@ -6,6 +7,11 @@ package body Pico_Keys.Buttons is
 
    State : State_Array := (others => False);
    Prev_State : State_Array := State;
+   Repeat_State : State_Array := (others => False);
+
+   Repeat_Interval : constant RP.Timer.Time := RP.Timer.Milliseconds (300);
+   Repeat_Deadline : array (Button_ID) of RP.Timer.Time :=
+     (others => RP.Timer.Time'Last);
 
    GPIOs : array (Button_ID) of RP.GPIO.GPIO_Point :=
      (Btn_C     => (Pin => 21),
@@ -44,13 +50,23 @@ package body Pico_Keys.Buttons is
    -- Scan --
    ----------
 
-   procedure Scan is
+   procedure Scan (Now : RP.Timer.Time) is
    begin
       Prev_State := State;
 
       for Index in Button_ID loop
          State (Index) := not GPIOs (Index).Set;
+
+
+         Repeat_State (Index) := False;
+         if Falling (Index) then
+            Repeat_Deadline (Index) := Now + Repeat_Interval;
+         elsif Pressed (Index) and then Repeat_Deadline (Index) <= Now then
+            Repeat_State (Index) := True;
+            Repeat_Deadline (Index) := Now + Repeat_Interval;
+         end if;
       end loop;
+
    end Scan;
 
    -------------
@@ -79,6 +95,15 @@ package body Pico_Keys.Buttons is
    begin
       return not State (ID) and then Prev_State (ID);
    end Rising;
+
+------------
+-- Repeat --
+------------
+
+function Repeat (ID : Button_ID) return Boolean is
+   begin
+      return Repeat_State (ID);
+   end Repeat;
 
 begin
    Initialize;

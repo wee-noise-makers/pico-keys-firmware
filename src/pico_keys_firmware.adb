@@ -75,7 +75,7 @@ begin
 
       if Next_UI_Trig <= Now then
          LEDs.Clear;
-         Buttons.Scan;
+         Buttons.Scan (Now);
 
          LEDs.Set_Hue (Btn_Func,
                        LEDs.Gen_Hue (Generators (Current_Gen).Current_Mode),

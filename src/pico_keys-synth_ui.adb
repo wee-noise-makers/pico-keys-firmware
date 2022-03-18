@@ -1,7 +1,7 @@
 with HAL; use HAL;
 
 with Pico_Keys.Save;
-with Pico_Keys.Buttons;
+with Pico_Keys.Buttons; use Pico_Keys.Buttons;
 with Pico_Keys.LEDs;
 
 package body Pico_Keys.Synth_UI is
@@ -82,12 +82,17 @@ package body Pico_Keys.Synth_UI is
 
 
       for Id in Param_Id loop
-         if Buttons.Falling (Plus_Btn (Id)) then
+
+         if Falling (Plus_Btn (Id)) or else Repeat (Plus_Btn (Id)) then
+
             Inc_Param (Select_Synth, Id);
             MIDI.Send_CC (Select_Synth, Id'Enum_Rep, Params (Select_Synth)(Id));
-         elsif Buttons.Falling (Minus_Btn (Id)) then
+
+         elsif Falling (Minus_Btn (Id)) or else Repeat (Minus_Btn (Id)) then
+
             Dec_Param (Select_Synth, Id);
             MIDI.Send_CC (Select_Synth, Id'Enum_Rep, Params (Select_Synth)(Id));
+
          end if;
 
          declare
