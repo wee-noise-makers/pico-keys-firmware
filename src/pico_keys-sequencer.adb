@@ -56,6 +56,10 @@ package body Pico_Keys.Sequencer is
       end if;
 
       Add_Note (This.Steps (This.Edit_Step), K);
+
+      if not This.Playing then
+         This.Note_On (K);
+      end if;
    end Falling;
 
    ------------
@@ -67,7 +71,9 @@ package body Pico_Keys.Sequencer is
                      K    :        MIDI.MIDI_Key)
    is
    begin
-      null;
+      if not This.Playing then
+         This.Note_Off (K);
+      end if;
    end Rising;
 
    ---------------------
@@ -111,7 +117,9 @@ package body Pico_Keys.Sequencer is
    procedure Enter_Func_Mode (This : in out Instance)
    is
    begin
-      null;
+      if not This.Playing then
+         This.Release_All;
+      end if;
    end Enter_Func_Mode;
 
 

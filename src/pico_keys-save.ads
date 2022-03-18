@@ -1,6 +1,7 @@
 with Pico_Keys.Generator_Instances;
 with Pico_Keys.Meta_Gen;
 with Pico_Keys.Synth_UI;
+with Pico_Keys.MIDI;
 
 package Pico_Keys.Save is
 
@@ -9,6 +10,7 @@ package Pico_Keys.Save is
    type Save_State is record
       Valid        : Boolean := False;
       BPM          : Natural := 120;
+      Base_Note    : MIDI.MIDI_Key := MIDI.C4;
       Generators   : Gen_Array;
       Synth_Params : Synth_UI.All_Synth_Parameters;
    end record;

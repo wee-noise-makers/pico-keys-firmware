@@ -1,4 +1,5 @@
 with HAL;
+with Pico_Keys.Meta_Gen;
 
 package Pico_Keys.LEDs is
 
@@ -19,6 +20,17 @@ package Pico_Keys.LEDs is
    Blue   : constant Hue := 169;
    Violet : constant Hue := 203;
    Pink   : constant Hue := 212;
+
+   Beat_Hue     : constant LEDs.Hue := Green;
+   Triplet_Hue  : constant LEDs.Hue := Orange;
+   Arp_Hue      : constant LEDs.Hue := Cyan;
+   Seq_Hue      : constant LEDs.Hue := Red;
+   Keyboard_Hue : constant LEDs.Hue := Violet;
+   Gen_Hue : constant array (Pico_Keys.Meta_Gen.Meta_Mode_Kind) of LEDs.Hue
+     := (Pico_Keys.Meta_Gen.Key => Keyboard_Hue,
+         Pico_Keys.Meta_Gen.Arp => Arp_Hue,
+         Pico_Keys.Meta_Gen.Seq => Seq_Hue);
+
 
    procedure Set_HSV (Id : Button_ID;
                       H : Hue;

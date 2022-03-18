@@ -53,7 +53,8 @@ package body Pico_Keys.Keyboard is
    -- Enter_Func_Mode --
    ---------------------
 
-   overriding procedure Enter_Func_Mode (This : in out Instance) is
+   overriding
+   procedure Enter_Func_Mode (This : in out Instance) is
    begin
       This.Release_All;
    end Enter_Func_Mode;
