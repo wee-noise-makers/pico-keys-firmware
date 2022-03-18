@@ -364,6 +364,6 @@ const Setting Settings::settings_order_[] = {
 };
 
 /* extern */
-Settings settings[NBR_OF_OSCs];
+Settings settings[NBR_OF_CHANs];
 
 }  // namespace braids

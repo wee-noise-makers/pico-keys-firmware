@@ -21,7 +21,7 @@
     __stack (== StackTop)
 */
 
-PLUGIN_SIZE = 150K;
+PLUGIN_SIZE = 206K;
 
 MEMORY
 {

@@ -31,7 +31,7 @@ package body Pico_Keys.Synth_Plugin is
 
       RAM_Base : constant := 16#20000000#;
       RAM_Size : constant := 256 * 1024;
-      Plugin_Area_Size  : constant := 150 * 1024;
+      Plugin_Area_Size  : constant := 206 * 1024;
       Plugin_Area_Start : constant := RAM_Base + RAM_Size - Plugin_Area_Size;
       Plugin_Area_End   : constant := Plugin_Area_Start + Plugin_Area_Size;
 

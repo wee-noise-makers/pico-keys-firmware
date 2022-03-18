@@ -43,15 +43,17 @@ using namespace stmlib;
 #define MAX_MIDI_VAL (15)
 #define MAX_PARAM (32767)
 
+#define POLY_OSCs (NBR_OF_OSCs - 2) // Number of oscillators for the poly chan
+
 const size_t kBlockSize = MAX_RENDER_BUFFER_SIZE;
 
 MacroOscillator osc[NBR_OF_OSCs];
 Envelope envelope[NBR_OF_OSCs];
 SignatureWaveshaper ws[NBR_OF_OSCs];
 int32_t midi_pitch[NBR_OF_OSCs] = {48 << 7};
-uint16_t volume[NBR_OF_OSCs] = {MAX_PARAM};
 
-int32_t cc_params[NBR_OF_OSCs][2] = {{MAX_PARAM / 2}};
+uint16_t volume[NBR_OF_CHANs] = {MAX_PARAM};
+int32_t cc_params[NBR_OF_CHANs][2] = {{MAX_PARAM / 2}};
 
 const MacroOscillatorShape shape_from_param[MAX_MIDI_VAL] =
 {
@@ -147,15 +149,15 @@ extern "C"{
 void Init() {
 
   for (int i = 0; i < NBR_OF_OSCs; i++){
-      settings[i].Init();
       osc[i].Init();
       envelope[i].Init();
       ws[i].Init(42000 * (i + 1));
+      fill(&audio_samples[i][0], &audio_samples[i][kBlockSize], 0);
+      fill(&sync_samples[i][0], &sync_samples[i][kBlockSize], 0);
   }
 
-  for (size_t i = 0; i < NBR_OF_OSCs; ++i) {
-    fill(&audio_samples[i][0], &audio_samples[i][kBlockSize], 0);
-    fill(&sync_samples[i][0], &sync_samples[i][kBlockSize], 0);
+  for (int i = 0; i < NBR_OF_CHANs; i++){
+      settings[i].Init();
   }
 }
 
@@ -170,7 +172,7 @@ const uint16_t bit_reduction_masks[] = {
 
 const uint16_t decimation_factors[] = { 24, 12, 6, 4, 3, 2, 1 };
 
-void RenderBlock(int osc_id) {
+void RenderBlock(int osc_id, int chan_id) {
   static int16_t previous_pitch[NBR_OF_OSCs] = {0};
   static uint16_t gain_lp[NBR_OF_OSCs];
 
@@ -178,18 +180,18 @@ void RenderBlock(int osc_id) {
   debug_pin.High();
 #endif
   envelope[osc_id].Update(
-      settings[osc_id].GetValue(SETTING_AD_ATTACK) * 8,
-      settings[osc_id].GetValue(SETTING_AD_DECAY) * 8);
+      settings[chan_id].GetValue(SETTING_AD_ATTACK) * 8,
+      settings[chan_id].GetValue(SETTING_AD_DECAY) * 8);
   uint32_t ad_value = envelope[osc_id].Render();
 
-  osc[osc_id].set_shape(settings[osc_id].shape());
+  osc[osc_id].set_shape(settings[chan_id].shape());
 
   // Set timbre and color: CV + internal modulation.
   uint16_t parameters[2];
   for (uint16_t i = 0; i < 2; ++i) {
-    int32_t value = cc_params[osc_id][i];//settings.adc_to_parameter(i, adc.channel(i));
+    int32_t value = cc_params[chan_id][i];
     Setting ad_mod_setting = i == 0 ? SETTING_AD_TIMBRE : SETTING_AD_COLOR;
-    value += ad_value * settings[osc_id].GetValue(ad_mod_setting) >> 5;
+    value += ad_value * settings[chan_id].GetValue(ad_mod_setting) >> 5;
     CONSTRAIN(value, 0, 32767);
     parameters[i] = value;
   }
@@ -198,9 +200,9 @@ void RenderBlock(int osc_id) {
   int32_t pitch = midi_pitch[osc_id];
   previous_pitch[osc_id] = pitch;
 
-  //pitch += jitter_source.Render(settings[osc_id].vco_drift());
+  //pitch += jitter_source.Render(settings[chan_id].vco_drift());
   //pitch += internal_adc.value() >> 8;
-  pitch += ad_value * settings[osc_id].GetValue(SETTING_AD_FM) >> 7;
+  pitch += ad_value * settings[chan_id].GetValue(SETTING_AD_FM) >> 7;
 
   if (pitch > 16383) {
     pitch = 16383;
@@ -208,10 +210,10 @@ void RenderBlock(int osc_id) {
     pitch = 0;
   }
 
-  if (settings[osc_id].vco_flatten()) {
+  if (settings[chan_id].vco_flatten()) {
     pitch = Interpolate88(lut_vco_detune, pitch << 2);
   }
-  osc[osc_id].set_pitch(pitch + settings[osc_id].pitch_transposition());
+  osc[osc_id].set_pitch(pitch + settings[chan_id].pitch_transposition());
 
   if (trigger_flag[osc_id]) {
     osc[osc_id].Strike();
@@ -222,10 +224,10 @@ void RenderBlock(int osc_id) {
   uint8_t* sync_buffer = sync_samples[osc_id];
   int16_t* render_buffer = audio_samples[osc_id];
 
-  if (settings[osc_id].GetValue(SETTING_AD_VCA) != 0
-    || settings[osc_id].GetValue(SETTING_AD_TIMBRE) != 0
-    || settings[osc_id].GetValue(SETTING_AD_COLOR) != 0
-    || settings[osc_id].GetValue(SETTING_AD_FM) != 0) {
+  if (settings[chan_id].GetValue(SETTING_AD_VCA) != 0
+    || settings[chan_id].GetValue(SETTING_AD_TIMBRE) != 0
+    || settings[chan_id].GetValue(SETTING_AD_COLOR) != 0
+    || settings[chan_id].GetValue(SETTING_AD_FM) != 0) {
     memset(sync_buffer, 0, kBlockSize);
   }
 
@@ -233,10 +235,10 @@ void RenderBlock(int osc_id) {
 
   // Copy to DAC buffer with sample rate and bit reduction applied.
   int16_t sample = 0;
-  size_t decimation_factor = decimation_factors[settings[osc_id].data().sample_rate];
-  uint16_t bit_mask = bit_reduction_masks[settings[osc_id].data().resolution];
-  int32_t gain = settings[osc_id].GetValue(SETTING_AD_VCA) ? ad_value : 65535;
-  uint16_t signature = settings[osc_id].signature() * settings[osc_id].signature() * 4095;
+  size_t decimation_factor = decimation_factors[settings[chan_id].data().sample_rate];
+  uint16_t bit_mask = bit_reduction_masks[settings[chan_id].data().resolution];
+  int32_t gain = settings[chan_id].GetValue(SETTING_AD_VCA) ? ad_value : 65535;
+  uint16_t signature = settings[chan_id].signature() * settings[chan_id].signature() * 4095;
   for (size_t i = 0; i < kBlockSize; ++i) {
     if ((i % decimation_factor) == 0) {
       sample = render_buffer[i] & bit_mask;
@@ -264,22 +266,29 @@ int main(void) {
     }
     case 2: { // In_Buffer
 
-        const uint32_t offset     = (data >> 8) & 0xFFFFFF;
-        const uint8_t  size       = (uint8_t)((data >> 4) & 0b1111);
-        const int      buffer_len = 1 << size;
-              int16_t *buffer     = (int16_t *)(RAM_BASE + offset);
-             uint16_t *ubuffer    = (uint16_t *)buffer;
+        const uint32_t  offset     = (data >> 8) & 0xFFFFFF;
+        const uint8_t   size       = (uint8_t)((data >> 4) & 0b1111);
+        const int       buffer_len = 1 << size;
+              int16_t  *buffer     = (int16_t *)(RAM_BASE + offset);
+              uint16_t *ubuffer    = (uint16_t *)buffer;
 
         for (int x = 0; x < buffer_len;){
             int32_t mix_buffer[kBlockSize] = {0};
 
             for (int osc_id = 0; osc_id < NBR_OF_OSCs; osc_id++) {
+                int chan_id;
 
-                RenderBlock(osc_id);
+                if (osc_id < POLY_OSCs) {
+                    chan_id = 0;
+                } else {
+                    chan_id = 1 + osc_id - POLY_OSCs;
+                }
+                
+                RenderBlock(osc_id, chan_id);
 
                 int16_t* render_buffer = audio_samples[osc_id];
                 for (int y = 0; y < kBlockSize; y++) {
-                    mix_buffer[y] += render_buffer[y] * volume[osc_id] >> 16;
+                    mix_buffer[y] += render_buffer[y] * volume[chan_id] >> 16;
                 }
             }
 
@@ -309,27 +318,34 @@ int main(void) {
         }
         case 0b1001:{// Note on
 
-            if (chan >= NBR_OF_OSCs) {
-                //  The last channel is used to polyphony (round-robin)
-                static uint8_t rr_next_chan = 0;
+            if (chan < NBR_OF_CHANs) {
 
-                chan = rr_next_chan;
-                rr_next_chan = (rr_next_chan + 1) % NBR_OF_OSCs;
-            }
+                int osc_id;
 
-            if (chan < NBR_OF_OSCs) {
-                trigger_flag[chan] = true;
+                if (chan == 0) {
+                    //  The first channel is polyphonic (round-robin)
+                    static uint8_t rr_next_osc = 0;
+
+                    osc_id = rr_next_osc;
+                    rr_next_osc = (rr_next_osc + 1) % POLY_OSCs;
+                } else {
+                    osc_id = POLY_OSCs + chan - 1;
+                }
+
+                trigger_flag[osc_id] = true;
 
                 // FIXME?: Why this 24 offset in MIDI notes?
-                midi_pitch[chan] = (((int32_t)key) << 7) - 24;
-
+                midi_pitch[osc_id] = (((int32_t)key) << 7) - 24;
+                
             }
-
             break;
 
         }
         case 0b1011:{// Control change
-            if (chan < NBR_OF_OSCs) {
+            int first_osc;
+            int last_osc;
+
+            if (chan < NBR_OF_CHANs) {
                 switch (key) {
                 case 0:{
                     cc_params[chan][0] = (int32_t)val * (MAX_PARAM / MAX_MIDI_VAL);

@@ -31,7 +31,8 @@
 
 #include "stmlib.h"
 
-#define NBR_OF_OSCs 3
+#define NBR_OF_OSCs 5
+#define NBR_OF_CHANs 6
 
 namespace braids {
 
@@ -371,7 +372,7 @@ class Settings {
   DISALLOW_COPY_AND_ASSIGN(Settings);
 };
 
-extern Settings settings[NBR_OF_OSCs];
+extern Settings settings[NBR_OF_CHANs];
 
 }  // namespace braids
 

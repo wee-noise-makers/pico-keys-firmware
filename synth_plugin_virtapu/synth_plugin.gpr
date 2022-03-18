@@ -29,8 +29,8 @@ project Synth_Plugin is
       for Main_Stack_Size use "4K";
 
       for Mem_Kind ("RAM") use "RAM";
-      for Address  ("RAM") use "16#2001A800#";
-      for Size     ("RAM") use "150K";
+      for Address  ("RAM") use "16#2000C800#";
+      for Size     ("RAM") use "206K";
 
       for Mem_Kind ("SCRATCH_X") use "RAM";
       for Address  ("SCRATCH_X") use "16#20040000#";
