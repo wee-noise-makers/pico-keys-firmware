@@ -157,7 +157,14 @@ package body Pico_Keys.Sequencer is
    procedure Clear (This : in out Instance) is
    begin
       This.Edit_Step := Step_Index'First - 1;
-      This.Steps := (others => (Count => 0, Tie => False, others => <>));
+
+      --  NOTE: Do not use array aggregate here because it would be allocated on
+      --  the stack and therefore overflow...
+      for Step of This.Steps loop
+         Step.Count := 0;
+         Step.Tie := False;
+      end loop;
+
       This.Current_Step := 0;
       This.Waiting_For_Notes := False;
    end Clear;
