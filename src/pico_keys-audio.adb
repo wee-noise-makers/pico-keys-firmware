@@ -12,7 +12,7 @@ package body Pico_Keys.Audio is
    SAMPLE_BITS_TO_DISCARD : constant := (16 - BITS_PER_SAMPLE);
    PWM_TOP                : constant := (2**BITS_PER_SAMPLE) - 1;
 
-   Pin   : GPIO_Point := (Pin => 9);
+   Pin   : GPIO_Point := (Pin => 2);
    Point : constant PWM_Point := To_PWM (Pin);
 
    DMA_IRQ : constant := 0;

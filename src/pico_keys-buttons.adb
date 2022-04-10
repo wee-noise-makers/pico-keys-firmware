@@ -20,19 +20,19 @@ package body Pico_Keys.Buttons is
       Btn_Ds    => (Pin => 20),
       Btn_E     => (Pin => 18),
       Btn_F     => (Pin => 16),
-      Btn_Fs    => (Pin => 7),
+      Btn_Fs    => (Pin => 10),
       Btn_G     => (Pin => 17),
-      Btn_Gs    => (Pin => 6),
+      Btn_Gs    => (Pin => 9),
       Btn_A     => (Pin => 15),
-      Btn_As    => (Pin => 5),
+      Btn_As    => (Pin => 8),
       Btn_B     => (Pin => 14),
       Btn_C2    => (Pin => 13),
-      Btn_C2s   => (Pin => 4),
+      Btn_C2s   => (Pin => 7),
       Btn_D2    => (Pin => 12),
-      Btn_D2s   => (Pin => 3),
-      Btn_E2    => (Pin => 8),
-      Btn_Func  => (Pin => 2),
-      Btn_Synth => (Pin => 10)
+      Btn_D2s   => (Pin => 6),
+      Btn_E2    => (Pin => 11),
+      Btn_Func  => (Pin => 5),
+      Btn_Synth => (Pin => 4)
      );
 
    ----------------

@@ -57,7 +57,7 @@ package body Pico_Keys.Sequencer is
 
       Add_Note (This.Steps (This.Edit_Step), K);
 
-      if not This.Playing then
+      if not This.Playing and then K /= 0 then
          This.Note_On (K);
       end if;
    end Falling;

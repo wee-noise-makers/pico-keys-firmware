@@ -8,7 +8,7 @@ with Pico_Keys.PIO; use Pico_Keys.PIO;
 
 package body Pico_Keys.LEDs is
 
-   Out_Pin : aliased RP.GPIO.GPIO_Point := (Pin => 1);
+   Out_Pin : aliased RP.GPIO.GPIO_Point := (Pin => 3);
 
    Number_Of_LEDs : constant := 19;
    subtype LED_ID is Natural range 1 .. Number_Of_LEDs;
@@ -25,25 +25,25 @@ package body Pico_Keys.LEDs is
    Fade_Value : array (Button_ID) of UInt8 := (others => 0);
 
    Button_To_LED : constant array (Button_ID) of LED_ID :=
-     (Btn_C    => 9,
-      Btn_Cs   => 8,
-      Btn_D    => 10,
-      Btn_Ds   => 7,
-      Btn_E    => 11,
-      Btn_F    => 12,
-      Btn_Fs   => 6,
-      Btn_G    => 13,
-      Btn_Gs   => 5,
-      Btn_A    => 14,
-      Btn_As   => 4,
-      Btn_B    => 15,
-      Btn_C2   => 16,
-      Btn_C2s  => 3,
-      Btn_D2   => 17,
-      Btn_D2s  => 2,
-      Btn_E2   => 18,
-      Btn_Func => 1,
-      Btn_Synth => 19
+     (Btn_C    => 10,
+      Btn_Cs   => 9,
+      Btn_D    => 11,
+      Btn_Ds   => 8,
+      Btn_E    => 12,
+      Btn_F    => 13,
+      Btn_Fs   => 7,
+      Btn_G    => 14,
+      Btn_Gs   => 6,
+      Btn_A    => 15,
+      Btn_As   => 5,
+      Btn_B    => 16,
+      Btn_C2   => 17,
+      Btn_C2s  => 4,
+      Btn_D2   => 18,
+      Btn_D2s  => 3,
+      Btn_E2   => 19,
+      Btn_Func => 2,
+      Btn_Synth => 1
      );
 
    Step_Cnt : UInt32 := 0;
