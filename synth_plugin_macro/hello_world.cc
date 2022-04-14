@@ -60,7 +60,7 @@ const MacroOscillatorShape shape_from_param[MAX_MIDI_VAL] =
     // MACRO_OSC_SHAPE_CSAW,
     // MACRO_OSC_SHAPE_MORPH,
     // MACRO_OSC_SHAPE_SAW_SQUARE,
-    // MACRO_OSC_SHAPE_SINE_TRIANGLE,
+    MACRO_OSC_SHAPE_SINE_TRIANGLE,
     // MACRO_OSC_SHAPE_BUZZ,
 
     MACRO_OSC_SHAPE_SQUARE_SUB,
@@ -81,7 +81,7 @@ const MacroOscillatorShape shape_from_param[MAX_MIDI_VAL] =
     // MACRO_OSC_SHAPE_DIGITAL_FILTER_BP,
     // MACRO_OSC_SHAPE_DIGITAL_FILTER_HP,
     // MACRO_OSC_SHAPE_VOSIM,
-    MACRO_OSC_SHAPE_VOWEL,
+    // MACRO_OSC_SHAPE_VOWEL,
     // MACRO_OSC_SHAPE_VOWEL_FOF,
 
     // MACRO_OSC_SHAPE_HARMONICS,
@@ -203,6 +203,9 @@ void RenderBlock(int osc_id, int chan_id) {
   //pitch += jitter_source.Render(settings[chan_id].vco_drift());
   //pitch += internal_adc.value() >> 8;
   pitch += ad_value * settings[chan_id].GetValue(SETTING_AD_FM) >> 7;
+
+  //  Adjust pitch for Pico Keys
+  pitch -= 75;
 
   if (pitch > 16383) {
     pitch = 16383;
