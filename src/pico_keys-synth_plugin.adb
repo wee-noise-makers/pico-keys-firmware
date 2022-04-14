@@ -93,9 +93,9 @@ package body Pico_Keys.Synth_Plugin is
          end if;
 
          RP.Multicore.Launch_Core1
-           (Trap_Vect   => Vect,
-            SP          => SP,
-            Entry_Point => Ent);
+           (Trap_Vector   => Vect,
+            Stack_Pointer => SP,
+            Entry_Point   => Ent);
       end;
 
       Pico_Keys.Audio.Set_Handler (Audio_Handler'Access);

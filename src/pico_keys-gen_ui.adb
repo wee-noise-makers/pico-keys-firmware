@@ -6,6 +6,7 @@ with Pico_Keys.Arpeggiator;
 with Pico_Keys.LEDs;
 with Pico_Keys.Buttons;
 with Pico_Keys.MIDI;
+with Pico_Keys.MIDI_Clock;
 with Pico_Keys.Meta_Gen; use Pico_Keys.Meta_Gen;
 with Pico_Keys.Save; use Pico_Keys.Save;
 
@@ -36,11 +37,11 @@ package body Pico_Keys.Gen_UI is
    ------------------
 
    procedure Process_Keys (Now         :        RP.Timer.Time;
-                           Step        : in out Step_Count;
                            Current_Gen : in out Gen_Id)
    is
       Playing_Before, Playing_After : Boolean;
 
+      Step : constant Step_Count := MIDI_Clock.Step;
    begin
       Playing_Before := (for some G of Generators => G.Playing);
 
@@ -228,12 +229,11 @@ package body Pico_Keys.Gen_UI is
 
       if Playing_Before and then not Playing_After then
          --  The last playing generator was stopped
-         MIDI.Send_Stop;
+         MIDI_Clock.Internal_Stop;
 
       elsif not Playing_Before and then Playing_After then
          --  At least one generator was started
-         MIDI.Send_Start;
-         Step := Step_Count'First;
+         MIDI_Clock.Internal_Start;
       end if;
 
    end Process_Keys;

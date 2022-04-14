@@ -9,7 +9,8 @@ package Pico_Keys.MIDI is
                          Continous_Controller,
                          Patch_Change,
                          Channel_Pressure,
-                         Pitch_Bend)
+                         Pitch_Bend,
+                         Sys)
      with Size => 4;
 
    for Command_Kind use (Note_Off             => 16#8#,
@@ -18,7 +19,8 @@ package Pico_Keys.MIDI is
                          Continous_Controller => 16#B#,
                          Patch_Change         => 16#C#,
                          Channel_Pressure     => 16#D#,
-                         Pitch_Bend           => 16#E#);
+                         Pitch_Bend           => 16#E#,
+                         Sys                  => 16#F#);
 
    subtype MIDI_Data is UInt8 range 2#0000_0000# .. 2#0111_1111#;
    subtype MIDI_Key is MIDI_Data;
@@ -39,6 +41,12 @@ package Pico_Keys.MIDI is
             Pressure : MIDI_Data;
          when Pitch_Bend =>
             Bend : MIDI_Data;
+         when Sys =>
+            --  System messages can have 0, 1 or 2 data bytes. The kind of
+            --  system message being in the "chan" nibble, we cannot use it
+            --  for a case statement in this record. So we add two byes here
+            --  to cover all the cases.
+            S1, S2 : MIDI_Data;
       end case;
    end record
      with Size => 3 * 8;
@@ -53,6 +61,8 @@ package Pico_Keys.MIDI is
       Instrument       at 1 range 0 .. 7;
       Pressure         at 1 range 0 .. 7;
       Bend             at 1 range 0 .. 7;
+      S1               at 1 range 0 .. 7;
+      S2               at 2 range 0 .. 7;
    end record;
 
    procedure Send (M : Message);
@@ -70,6 +80,8 @@ package Pico_Keys.MIDI is
    procedure Send_Clock_Tick;
    procedure Send_Start;
    procedure Send_Stop;
+
+   procedure Process_Input;
 
    type Octaves is new UInt8 range 1 .. 8;
    type Notes is (C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B);
@@ -180,6 +192,13 @@ package Pico_Keys.MIDI is
 
 private
 
-   MIDI_Serial_Queue : BBqueue.Buffers.Buffer (2048);
+   MIDI_Serial_Queue : BBqueue.Buffers.Buffer (1024);
+
+   MIDI_Input_Storage :
+     array (BBqueue.Buffer_Offset range 0 .. 1024) of Message;
+
+   MIDI_Input_Queue : BBqueue.Offsets_Only (MIDI_Input_Storage'Length);
+
+   procedure Push_To_Input_Queue (Msg : Message);
 
 end Pico_Keys.MIDI;

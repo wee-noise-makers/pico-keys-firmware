@@ -8,6 +8,7 @@ with Pico_Keys.MIDI;
 with Pico_Keys.MIDI.Serial;
 with Pico_Keys.Meta_Gen; use Pico_Keys.Meta_Gen;
 with Pico_Keys.Sequencer;
+with Pico_Keys.MIDI_Clock;
 with Pico_Keys.Gen_UI;
 with Pico_Keys.Synth_UI;
 with Pico_Keys.Synth_Plugin;
@@ -19,15 +20,10 @@ procedure Pico_Keys_Firmware is
 
    Current_Gen : Gen_Id := Gen_Id'First;
 
-   Next_Clock_Trig : RP.Timer.Time := RP.Timer.Clock;
    Next_UI_Trig : RP.Timer.Time := RP.Timer.Clock;
-
-   Step : Step_Count := Step_Count'First;
-
    Now : RP.Timer.Time;
 
    Generators : Pico_Keys.Save.Gen_Array renames RAM_State.Generators;
-   BPM        : Natural                  renames RAM_State.BPM;
    Base_Note  : MIDI.MIDI_Key            renames RAM_State.Base_Note;
 
 begin
@@ -53,19 +49,9 @@ begin
    loop
       Now := Clock;
 
-      if Now >= Next_Clock_Trig then
-         Next_Clock_Trig :=
-           Next_Clock_Trig + Time ((Ticks_Per_Second * 60) / (BPM * 24));
+      MIDI.Process_Input;
 
-         for G of Generators loop
-            G.Signal_Step (BPM, Step, Now);
-         end loop;
-
-         Step := Step + 1;
-         if (for some Gen of Generators => Gen.Playing) then
-            MIDI.Send_Clock_Tick;
-         end if;
-      end if;
+      MIDI_Clock.Update (Now);
 
       for G in Gen_Id loop
          Generators (G).Check_Trigger (Now);
@@ -85,7 +71,7 @@ begin
 
          if Buttons.Pressed (Btn_Func) then
 
-            Pico_Keys.Gen_UI.Process_Keys (Now, Step, Current_Gen);
+            Pico_Keys.Gen_UI.Process_Keys (Now, Current_Gen);
 
          elsif Buttons.Pressed (Btn_Synth) then
 
@@ -96,7 +82,7 @@ begin
                                                  when 3 => 2));
          else
 
-            --  Key evemts for the current generator
+            --  Key events for the current generator
             declare
                Btn_Count : Natural := 0;
             begin

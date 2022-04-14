@@ -153,14 +153,16 @@ package body Pico_Keys.Generator is
                                     when Swing_75  => 0.50));
 
    begin
-      if On_Time (This.Division, Step) then
-         if This.First_Of_Pair then
-            This.Next_Trig := Now;
-         else
-            This.Next_Trig := Now + Swing_Time;
-         end if;
+      if Dispatch (This).Playing then
+         if On_Time (This.Division, Step) then
+            if This.First_Of_Pair then
+               This.Next_Trig := Now;
+            else
+               This.Next_Trig := Now + Swing_Time;
+            end if;
 
-         This.First_Of_Pair := not This.First_Of_Pair;
+            This.First_Of_Pair := not This.First_Of_Pair;
+         end if;
       end if;
    end Signal_Step;
 
