@@ -32,7 +32,7 @@
 #include "stmlib.h"
 
 #define NBR_OF_OSCs 5
-#define NBR_OF_CHANs 6
+#define NBR_OF_CHANs 3
 
 namespace braids {
 
@@ -42,7 +42,7 @@ enum MacroOscillatorShape {
   MACRO_OSC_SHAPE_SAW_SQUARE,
   MACRO_OSC_SHAPE_SINE_TRIANGLE,
   MACRO_OSC_SHAPE_BUZZ,
-  
+
   MACRO_OSC_SHAPE_SQUARE_SUB,
   MACRO_OSC_SHAPE_SAW_SUB,
   MACRO_OSC_SHAPE_SQUARE_SYNC,
