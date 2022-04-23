@@ -51,7 +51,7 @@ package Pico_Keys.Generator is
    procedure Next_Swing (This : in out Instance);
 
    procedure Signal_Step (This : in out Instance;
-                          BPM  :        Natural;
+                          BPM  :        BPM_Range;
                           Step :        Step_Count;
                           Now  :        RP.Timer.Time);
 

@@ -96,11 +96,11 @@ package body Pico_Keys.Buttons is
       return not State (ID) and then Prev_State (ID);
    end Rising;
 
-------------
--- Repeat --
-------------
+   ------------
+   -- Repeat --
+   ------------
 
-function Repeat (ID : Button_ID) return Boolean is
+   function Repeat (ID : Button_ID) return Boolean is
    begin
       return Repeat_State (ID);
    end Repeat;

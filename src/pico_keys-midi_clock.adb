@@ -9,7 +9,7 @@ package body Pico_Keys.MIDI_Clock is
    Current_Step : Step_Count := Step_Count'First;
    Next_Clock_Trig : RP.Timer.Time := RP.Timer.Clock;
 
-   BPM : Natural renames Pico_Keys.Save.RAM_State.BPM;
+   BPM : BPM_Range renames Pico_Keys.Save.RAM_State.BPM;
    Generators : Pico_Keys.Save.Gen_Array
      renames Pico_Keys.Save.RAM_State.Generators;
 

@@ -9,7 +9,7 @@ package Pico_Keys.Save is
 
    type Save_State is record
       Valid        : Boolean := False;
-      BPM          : Natural := 120;
+      BPM          : BPM_Range := 120;
       Base_Note    : MIDI.MIDI_Key := MIDI.C4;
       Generators   : Gen_Array;
       Synth_Params : Synth_UI.All_Synth_Parameters;
@@ -22,8 +22,8 @@ package Pico_Keys.Save is
    procedure Load_From_Flash;
 
 private
+
    Flash_State : Save_State
      with Linker_Section => ".save_data";
-
 
 end Pico_keys.Save;

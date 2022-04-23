@@ -6,6 +6,9 @@ with RP.Clock;
 package Pico_Keys is
    pragma Elaborate_Body;
 
+   subtype BPM_Range is Natural range 50 .. 250;
+   BPM_Step : constant Natural := 5;
+
    type Step_Count is mod 48;
 
    type Time_Div is (Div_4, Div_8, Div_16, Div_32,

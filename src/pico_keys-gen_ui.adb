@@ -19,9 +19,6 @@ package body Pico_Keys.Gen_UI is
          2 => Btn_G2,
          3 => Btn_G3);
 
-   Min_BPM : constant Natural := 50;
-   Max_BPM : constant Natural := 250;
-
    Save_Btn_Long_Press_Deadline : RP.Timer.Time;
    Save_Btn_Dbl_Press_Deadline : RP.Timer.Time;
    Save_Blink_Until : RP.Timer.Time;
@@ -29,7 +26,7 @@ package body Pico_Keys.Gen_UI is
    Save_Blink_Duration : constant RP.Timer.Time := Ticks_Per_Second / 2;
 
    Generators : Pico_Keys.Save.Gen_Array renames RAM_State.Generators;
-   BPM        : Natural                  renames RAM_State.BPM;
+   BPM        : BPM_Range                renames RAM_State.BPM;
    Base_Note  : MIDI.MIDI_Key            renames RAM_State.Base_Note;
 
    ------------------
@@ -94,14 +91,14 @@ package body Pico_Keys.Gen_UI is
 
       --  BPM +/-
       if (Buttons.Falling (Btn_BPM_Plus) or else Buttons.Repeat (Btn_BPM_Plus))
-        and then BPM < Max_BPM
+        and then BPM <= (BPM_Range'Last - BPM_Step)
       then
-         BPM := BPM + 5;
+         BPM := BPM + BPM_Step;
 
       elsif (Buttons.Falling (Btn_BPM_Minus) or else Buttons.Repeat (Btn_BPM_Minus))
-        and then BPM > Min_BPM
+        and then BPM >= (BPM_Range'First + BPM_Step)
       then
-         BPM := BPM - 5;
+         BPM := BPM - BPM_Step;
       end if;
 
       if Pico_Keys.On_Time (Pico_Keys.Div_4, Step) then
