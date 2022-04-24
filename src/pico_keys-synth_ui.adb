@@ -129,7 +129,7 @@ begin
       Params (Id)(Timber_Env) := 0;
       Params (Id)(Model) := Id'Enum_Rep;
       Params (Id)(Attack) := 0;
-      Params (Id)(Decay) := 5;
+      Params (Id)(Decay) := 8;
       Params (Id)(Volume) := Synth_Param_Value'Last;
    end loop;
 end Pico_Keys.Synth_UI;
