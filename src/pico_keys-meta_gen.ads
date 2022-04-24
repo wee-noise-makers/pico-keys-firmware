@@ -1,4 +1,4 @@
-with Pico_Keys.MIDI;
+with MIDI;
 with Pico_Keys.Generator;
 
 with Pico_Keys.Arpeggiator;

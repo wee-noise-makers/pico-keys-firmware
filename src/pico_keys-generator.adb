@@ -1,4 +1,6 @@
-with Pico_Keys.MIDI; use Pico_Keys.MIDI;
+with MIDI; use MIDI;
+
+with Pico_Keys.MIDI;
 
 package body Pico_Keys.Generator is
 
@@ -49,7 +51,7 @@ package body Pico_Keys.Generator is
    -- Channel --
    -------------
 
-   function Channel (This : Instance) return MIDI.MIDI_Channel is
+   function Channel (This : Instance) return MIDI_Channel is
    begin
       return This.Chan;
    end Channel;
@@ -186,7 +188,7 @@ package body Pico_Keys.Generator is
    -- Note_On --
    -------------
 
-   procedure Note_On (This : in out Instance; K : MIDI.MIDI_Key) is
+   procedure Note_On (This : in out Instance; K : MIDI_Key) is
    begin
       MIDI.Send_Note_On (K, This.Chan);
       This.Notes_On (K) := True;
@@ -196,7 +198,7 @@ package body Pico_Keys.Generator is
    -- Note_Off --
    --------------
 
-   procedure Note_Off (This : in out Instance; K : MIDI.MIDI_Key) is
+   procedure Note_Off (This : in out Instance; K : MIDI_Key) is
    begin
       MIDI.Send_Note_Off (K, This.Chan);
       This.Notes_On (K) := False;

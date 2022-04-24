@@ -1,6 +1,6 @@
 --  Abstract class for note generators (Arp, Seq, Keyboard, etc..)
 
-with Pico_Keys.MIDI;
+with MIDI;
 with RP.Timer;
 
 package Pico_Keys.Generator is

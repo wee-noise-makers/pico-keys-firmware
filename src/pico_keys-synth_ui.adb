@@ -3,6 +3,7 @@ with HAL; use HAL;
 with Pico_Keys.Save;
 with Pico_Keys.Buttons; use Pico_Keys.Buttons;
 with Pico_Keys.LEDs;
+with Pico_Keys.MIDI;
 
 package body Pico_Keys.Synth_UI is
 

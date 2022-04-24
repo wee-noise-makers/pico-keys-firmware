@@ -1,5 +1,7 @@
 with HAL; use HAL;
 
+with MIDI;
+
 with Pico_Keys; use Pico_Keys;
 
 with Pico_Keys.LEDs;
@@ -49,7 +51,7 @@ begin
    loop
       Now := Clock;
 
-      MIDI.Process_Input;
+      Pico_Keys.MIDI.Process_Input;
 
       MIDI_Clock.Update (Now);
 
@@ -57,7 +59,7 @@ begin
          Generators (G).Check_Trigger (Now);
       end loop;
 
-      MIDI.Serial.Flush;
+      Pico_Keys.MIDI.Serial.Flush;
 
       if Next_UI_Trig <= Now then
          LEDs.Clear;

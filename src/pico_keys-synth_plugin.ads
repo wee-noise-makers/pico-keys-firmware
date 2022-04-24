@@ -2,7 +2,7 @@ with System;
 
 with HAL;
 
-with Pico_Keys.MIDI;
+with MIDI;
 
 package Pico_Keys.Synth_Plugin is
 
@@ -39,7 +39,7 @@ private
             Offset : HAL.UInt24;
 
          when MIDI_Msg =>
-            Msg : Pico_Keys.MIDI.Message;
+            Msg : MIDI.Message;
       end case;
    end record
      with Size => 32;

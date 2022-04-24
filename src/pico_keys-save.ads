@@ -1,7 +1,8 @@
+with MIDI;
+
 with Pico_Keys.Generator_Instances;
 with Pico_Keys.Meta_Gen;
 with Pico_Keys.Synth_UI;
-with Pico_Keys.MIDI;
 
 package Pico_Keys.Save is
 

@@ -1,11 +1,12 @@
 with HAL; use HAL;
 
+with MIDI;
+
 with Pico_Keys; use Pico_Keys;
 
 with Pico_Keys.Arpeggiator;
 with Pico_Keys.LEDs;
 with Pico_Keys.Buttons;
-with Pico_Keys.MIDI;
 with Pico_Keys.MIDI_Clock;
 with Pico_Keys.Meta_Gen; use Pico_Keys.Meta_Gen;
 with Pico_Keys.Save; use Pico_Keys.Save;

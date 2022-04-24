@@ -147,7 +147,6 @@ package body Pico_Keys.Sequencer is
          Play_Notes (This, This.Steps (This.Current_Step));
       end if;
 
-
    end Trigger;
 
    -----------

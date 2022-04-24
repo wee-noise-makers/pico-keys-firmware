@@ -1,6 +1,6 @@
 with RP.Timer;
 
-with Pico_Keys.MIDI;
+with MIDI;
 
 package Pico_Keys.Synth_UI is
 

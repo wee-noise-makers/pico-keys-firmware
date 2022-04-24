@@ -93,7 +93,7 @@ package body Pico_Keys.MIDI.Serial is
    end Initialize;
 
    -----------
-   -- Slush --
+   -- Flush --
    -----------
 
    procedure Flush is
@@ -105,11 +105,11 @@ package body Pico_Keys.MIDI.Serial is
 
       if State (Out_Grant) = Valid then
          --  Release the previous grant
-         BBqueue.Buffers.Release (MIDI_Serial_Queue, Out_Grant);
+         Encoder_Queue.Release (Out_Grant);
       end if;
 
       --  Try to get a new grant
-      BBqueue.Buffers.Read (MIDI_Serial_Queue, Out_Grant, BBqueue.Count'Last);
+      Encoder_Queue.Read (Out_Grant);
 
       if State (Out_Grant) = Valid then
 

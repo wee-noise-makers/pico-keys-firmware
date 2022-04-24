@@ -11,11 +11,14 @@ executables = ["pico_keys_firmware"]
 [[depends-on]]
 rp2040_hal = "~0.6.0"
 gnat_arm_elf = "^11"
-hal = "~0.1.0"
+hal = "~0.3.0"
 bbqueue = "~0.3.0"
+midi = "*"
 
 [[pins]]
 rp2040_hal = { url='https://github.com/JeremyGrosser/rp2040_hal' }
+midi = { url="https://github.com/Fabien-Chouteau/MIDI" }
+hal =  { url="https://github.com/Fabien-Chouteau/hal" }
 
 [configuration.values]
 rp2040_hal.Flash_Chip = "generic_qspi"

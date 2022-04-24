@@ -68,7 +68,7 @@ package body Pico_Keys.Audio is
 
       RP.DMA.Start (Channel => AUDIO_PWM_DMA,
                     From    => Buffer,
-                    To      => Compare_Reg_Address (Point),
+                    To      => Compare_Reg_Address (Point.Slice),
                     Count   => Sample_Count);
    end DMA_IRQ0_Handler;
 
