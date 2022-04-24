@@ -75,6 +75,15 @@ package body Pico_Keys.MIDI is
       Send ((Sys, Start_Song, others => <>));
    end Send_Start;
 
+   -------------------
+   -- Send_Continue --
+   -------------------
+
+   procedure Send_Continue is
+   begin
+      Send ((Sys, Continue_Song, others => <>));
+   end Send_Continue;
+
    ---------------
    -- Send_Stop --
    ---------------
@@ -102,13 +111,16 @@ package body Pico_Keys.MIDI is
             when Sys =>
                case Msg.Cmd is
 
-                  when Start_Song => --  Start Song
+                  when Start_Song =>
                      MIDI_Clock.External_Start;
 
-                  when Stop_Song => --  Stop Song
+                  when Stop_Song =>
                      MIDI_Clock.External_Stop;
 
-                  when Timming_Tick => --  Timming Tick
+                  when Continue_Song =>
+                     MIDI_Clock.External_Continue;
+
+                  when Timming_Tick =>
                      MIDI_Clock.External_Tick;
 
                   when others =>

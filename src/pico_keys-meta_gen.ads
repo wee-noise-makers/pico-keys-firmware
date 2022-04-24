@@ -19,6 +19,9 @@ package Pico_Keys.Meta_Gen is
    procedure Play (This : in out Instance);
 
    overriding
+   procedure Continue (This : in out Instance);
+
+   overriding
    procedure Stop (This : in out Instance);
 
    overriding

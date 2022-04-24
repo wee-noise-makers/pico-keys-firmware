@@ -25,6 +25,18 @@ package body Pico_Keys.Generator is
       This.First_Of_Pair := True;
    end Play;
 
+   --------------
+   -- Continue --
+   --------------
+
+   procedure Continue (This : in out Instance) is
+   begin
+      if not This.Is_Playing then
+         This.Is_Playing := True;
+         This.Next_Trig := RP.Timer.Time'Last;
+      end if;
+   end Continue;
+
    ----------
    -- Stop --
    ----------
@@ -32,6 +44,7 @@ package body Pico_Keys.Generator is
    procedure Stop (This : in out Instance) is
    begin
       This.Is_Playing := False;
+      This.Release_All;
    end Stop;
 
    -----------------

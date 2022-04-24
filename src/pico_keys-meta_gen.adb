@@ -29,6 +29,20 @@ package body Pico_Keys.Meta_Gen is
    end Play;
 
    ----------
+   -- Play --
+   ----------
+
+   overriding
+   procedure Continue (This : in out Instance) is
+   begin
+      case This.Meta is
+         when Key => This.Key_Gen.Continue;
+         when Arp => This.Arp_Gen.Continue;
+         when Seq => This.Seq_Gen.Continue;
+      end case;
+   end Continue;
+
+   ----------
    -- Stop --
    ----------
 

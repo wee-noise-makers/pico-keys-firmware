@@ -13,6 +13,7 @@ package Pico_Keys.MIDI_Clock is
    procedure Internal_Stop;
 
    procedure External_Start;
+   procedure External_Continue;
    procedure External_Stop;
    procedure External_Tick;
 

@@ -128,7 +128,7 @@ package body Pico_Keys.MIDI_Clock is
                G.Play;
             end loop;
 
-            --  Propagate the clock start to our MIDI ouput
+            --  Propagate the clock start to our MIDI output
             MIDI.Send_Start;
 
          when Running_Internal =>
@@ -138,6 +138,35 @@ package body Pico_Keys.MIDI_Clock is
             null;
       end case;
    end External_Start;
+
+   -----------------------
+   -- External_Continue --
+   -----------------------
+
+   procedure External_Continue is
+   begin
+      case Current_State is
+         when Stopped =>
+
+            --  Same as Start but don't reset the Current_Step
+
+            Current_State := Running_External;
+
+            --  Start all internal note generators
+            for G of Generators loop
+               G.Continue;
+            end loop;
+
+            --  Propagate the clock start to our MIDI output
+            MIDI.Send_Continue;
+
+         when Running_Internal =>
+            null;
+
+         when Running_External =>
+            null;
+      end case;
+   end External_Continue;
 
    -------------------
    -- External_Stop --
@@ -154,8 +183,13 @@ package body Pico_Keys.MIDI_Clock is
 
          when Running_External =>
 
-            --  Propagate the clock stop to our MIDI ouput
-            MIDI.Send_Start;
+            --  Propagate the clock stop to our MIDI output
+            MIDI.Send_Stop;
+
+            --  Stop all internal note generators
+            for G of Generators loop
+               G.Stop;
+            end loop;
 
             Current_State := Stopped;
 
@@ -183,7 +217,7 @@ package body Pico_Keys.MIDI_Clock is
 
             Current_Step := Current_Step + 1;
 
-            --  Propagate the clock tick to our MIDI ouput
+            --  Propagate the clock tick to our MIDI output
             MIDI.Send_Clock_Tick;
 
       end case;

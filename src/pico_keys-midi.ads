@@ -19,6 +19,7 @@ package Pico_Keys.MIDI is
 
    procedure Send_Clock_Tick;
    procedure Send_Start;
+   procedure Send_Continue;
    procedure Send_Stop;
 
    procedure Process_Input;
