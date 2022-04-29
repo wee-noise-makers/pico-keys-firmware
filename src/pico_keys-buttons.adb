@@ -7,9 +7,17 @@ package body Pico_Keys.Buttons is
 
    State : State_Array := (others => False);
    Prev_State : State_Array := State;
-   Repeat_State : State_Array := (others => False);
+
+   Long_Press_Interval : constant RP.Timer.Time := RP.Timer.Milliseconds (1000);
+   Long_Press_State : State_Array := (others => False);
+   Long_Press_Deadline : array (Button_ID) of Time := (others => Time'Last);
+
+   Dbl_Press_Interval : constant RP.Timer.Time := RP.Timer.Milliseconds (500);
+   Dbl_Press_State : State_Array := (others => False);
+   Dbl_Press_Deadline : array (Button_ID) of Time := (others => Time'First);
 
    Repeat_Interval : constant RP.Timer.Time := RP.Timer.Milliseconds (300);
+   Repeat_State : State_Array := (others => False);
    Repeat_Deadline : array (Button_ID) of RP.Timer.Time :=
      (others => RP.Timer.Time'Last);
 
@@ -54,20 +62,57 @@ package body Pico_Keys.Buttons is
    begin
       Prev_State := State;
 
+      Repeat_State := (others => False);
+      Dbl_Press_State := (others => False);
+      Long_Press_State := (others => False);
+
       for Index in Button_ID loop
          State (Index) := not GPIOs (Index).Set;
 
 
-         Repeat_State (Index) := False;
          if Falling (Index) then
             Repeat_Deadline (Index) := Now + Repeat_Interval;
-         elsif Pressed (Index) and then Repeat_Deadline (Index) <= Now then
-            Repeat_State (Index) := True;
-            Repeat_Deadline (Index) := Now + Repeat_Interval;
+            Long_Press_Deadline (Index) := Now + Long_Press_Interval;
+         elsif Pressed (Index) then
+
+            if Now >= Repeat_Deadline (Index) then
+               Repeat_State (Index) := True;
+               Repeat_Deadline (Index) := Now + Repeat_Interval;
+            end if;
+
+            if Now >= Long_Press_Deadline (Index) then
+               Long_Press_State (Index) := True;
+               Long_Press_Deadline (Index) := Time'Last;
+            end if;
+
+         elsif Rising (Index) then
+            if Now <= Dbl_Press_Deadline (Index) then
+               Dbl_Press_State (Index) := True;
+               Dbl_Press_Deadline (Index) := Time'First;
+            else
+               Dbl_Press_Deadline (Index) := Now + Dbl_Press_Interval;
+            end if;
          end if;
       end loop;
 
    end Scan;
+
+   --------------------
+   -- Reset_Dbl_Long --
+   --------------------
+
+   procedure Reset_Dbl_Long is
+   begin
+      Long_Press_State := (others => False);
+      Long_Press_Deadline := (others => Time'Last);
+
+      Dbl_Press_State := (others => False);
+      Dbl_Press_Deadline := (others => Time'First);
+
+      Repeat_State := (others => False);
+      Repeat_Deadline := (others => RP.Timer.Time'Last);
+   end Reset_Dbl_Long;
+
 
    -------------
    -- Pressed --
@@ -104,6 +149,24 @@ package body Pico_Keys.Buttons is
    begin
       return Repeat_State (ID);
    end Repeat;
+
+   ----------------
+   -- Long_Press --
+   ----------------
+
+   function Long_Press (ID : Button_ID) return Boolean is
+   begin
+      return Long_Press_State (ID);
+   end Long_Press;
+
+   ------------------
+   -- Double_Press --
+   ------------------
+
+   function Double_Press (ID : Button_ID) return Boolean is
+   begin
+      return Dbl_Press_State (ID);
+   end Double_Press;
 
 begin
    Initialize;

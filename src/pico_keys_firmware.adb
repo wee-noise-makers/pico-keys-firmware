@@ -44,7 +44,7 @@ begin
    Generators (3).Next_Channel;
 
    --  Load a previous save, if there's one in flash
-   Pico_Keys.Save.Load_From_Flash;
+   Pico_Keys.Save.Load_First_Valid;
 
    Pico_Keys.Synth_UI.Update_All_Parameters;
 
