@@ -65,6 +65,11 @@ package Pico_Keys.Meta_Gen is
                     return Boolean;
    --  Return True if a key is part of the Arp sequence
 
+   function Octave_Range (This : Instance) return Arpeggiator.Oct_Range;
+   procedure Next_Octave_Range (This : in out Instance);
+   procedure Prev_Octave_Range (This : in out Instance);
+
+
    function Arp_Mode (This : Instance) return Arpeggiator.Arp_Mode;
    procedure Next_Arp_Mode (This : in out Instance);
 

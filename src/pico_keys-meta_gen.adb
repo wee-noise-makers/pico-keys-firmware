@@ -220,6 +220,33 @@ package body Pico_Keys.Meta_Gen is
       end if;
    end In_Arp;
 
+   ------------------
+   -- Octave_Range --
+   ------------------
+
+   function Octave_Range (This : Instance) return Arpeggiator.Oct_Range is
+   begin
+      return This.Arp_Gen.Octave_Range;
+   end Octave_Range;
+
+   -----------------------
+   -- Next_Octave_Range --
+   -----------------------
+
+   procedure Next_Octave_Range (This : in out Instance) is
+   begin
+      This.Arp_Gen.Next_Octave_Range;
+   end Next_Octave_Range;
+
+   -----------------------
+   -- Prev_Octave_Range --
+   -----------------------
+
+   procedure Prev_Octave_Range (This : in out Instance) is
+   begin
+      This.Arp_Gen.Prev_Octave_Range;
+   end Prev_Octave_Range;
+
    --------------
    -- Arp_Mode --
    --------------

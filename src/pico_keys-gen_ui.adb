@@ -15,6 +15,8 @@ with RP.Timer; use RP.Timer;
 
 package body Pico_Keys.Gen_UI is
 
+   use type Arpeggiator.Oct_Range;
+
    Gen_Btn : constant array (Gen_Id) of Pico_Keys.Button_ID
      := (1 => Btn_G1,
          2 => Btn_G2,
@@ -226,6 +228,26 @@ package body Pico_Keys.Gen_UI is
                   LEDS.Set_Hue (Btn_Arp_Mode, LEDs.Violet);
             end case;
 
+            if Buttons.Falling (Btn_Arp_Oct_Minus) then
+               Generators (Current_Gen).Prev_Octave_Range;
+            elsif Buttons.Falling (Btn_Arp_Oct_Plus) then
+               Generators (Current_Gen).Next_Octave_Range;
+            end if;
+
+            -- Oct range
+            case Generators (Current_Gen).Octave_Range is
+               when -2 =>
+                  LEDs.Set_Hue (Btn_Arp_Oct_Minus, LEDs.Arp_Hue, LEDs.Blink_Fast);
+               when -1 =>
+                  LEDs.Set_Hue (Btn_Arp_Oct_Minus, LEDs.Arp_Hue, LEDs.Blink);
+               when 0 =>
+                  LEDs.Set_Hue (Btn_Arp_Oct_Minus, LEDs.Arp_Hue);
+                  LEDs.Set_Hue (Btn_Arp_Oct_Plus, LEDs.Arp_Hue);
+               when 1 =>
+                  LEDs.Set_Hue (Btn_Arp_Oct_Plus, LEDs.Arp_Hue, LEDs.Blink);
+               when 2 =>
+                  LEDs.Set_Hue (Btn_Arp_Oct_Plus, LEDs.Arp_Hue, LEDs.Blink_Fast);
+            end case;
          end case;
 
          --  Change generator

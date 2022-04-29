@@ -10,6 +10,9 @@ package Pico_Keys.Arpeggiator is
    procedure Play (This : in out Instance);
 
    overriding
+   procedure Stop (This : in out Instance);
+
+   overriding
    procedure Falling (This : in out Instance;
                       K    :        MIDI.MIDI_Key);
 
@@ -46,6 +49,12 @@ package Pico_Keys.Arpeggiator is
    function Mode (This : Instance) return Arp_Mode;
    procedure Next_Mode (This : in out Instance);
 
+
+   type Oct_Range is range -2 .. 2;
+   function Octave_Range (This : Instance) return Oct_Range;
+   procedure Next_Octave_Range (This : in out Instance);
+   procedure Prev_Octave_Range (This : in out Instance);
+
 private
 
    type Key_Mask is array (MIDI.MIDI_Key) of Boolean;
@@ -67,6 +76,10 @@ private
       Notes_In_Arp : Key_Mask := (others => False);
       Going_Up : Boolean := True;
 
+      Oct_Rng     : Oct_Range := 0;
+      Current_Oct : Oct_Range := 0;
    end record;
+
+   procedure Trig_Next_Oct (This : in out Instance);
 
 end Pico_Keys.Arpeggiator;

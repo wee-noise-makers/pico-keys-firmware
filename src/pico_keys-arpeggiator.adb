@@ -12,7 +12,18 @@ package body Pico_Keys.Arpeggiator is
       Parent (This).Play;
       This.Next_Index := Note_Index'First;
       This.Last_Note := 0;
+      This.Current_Oct := 0;
    end Play;
+
+   overriding
+   procedure Stop (This : in out Instance) is
+   begin
+      Parent (This).Stop;
+      if This.Note_To_Turn_Off /= 0 then
+         This.Note_Off (This.Note_To_Turn_Off);
+         This.Note_To_Turn_Off := 0;
+      end if;
+   end Stop;
 
    -------------
    -- Falling --
@@ -27,6 +38,7 @@ package body Pico_Keys.Arpeggiator is
          This.Clear;
          This.Waiting_For_Notes := True;
          This.Last_Note := 0;
+         This.Current_Oct := 0;
       end if;
 
       if This.Next_Add /= Note_Index'Last then
@@ -104,6 +116,7 @@ package body Pico_Keys.Arpeggiator is
             loop
                if This.Last_Note = MIDI.MIDI_Key'Last then
                   This.Last_Note := MIDI.MIDI_Key'First;
+                  This.Trig_Next_Oct;
                else
                   This.Last_Note := This.Last_Note + 1;
                end if;
@@ -115,6 +128,7 @@ package body Pico_Keys.Arpeggiator is
             loop
                if This.Last_Note = MIDI.MIDI_Key'First then
                   This.Last_Note := MIDI.MIDI_Key'Last;
+                  This.Trig_Next_Oct;
                else
                   This.Last_Note := This.Last_Note - 1;
                end if;
@@ -126,12 +140,14 @@ package body Pico_Keys.Arpeggiator is
             loop
                if This.Going_Up then
                   if This.Last_Note = MIDI.MIDI_Key'Last then
+                     This.Trig_Next_Oct;
                      This.Going_Up := False;
                   else
                      This.Last_Note := This.Last_Note + 1;
                   end if;
                else
                   if This.Last_Note = MIDI.MIDI_Key'First then
+                     This.Trig_Next_Oct;
                      This.Going_Up := True;
                   else
                      This.Last_Note := This.Last_Note - 1;
@@ -144,6 +160,7 @@ package body Pico_Keys.Arpeggiator is
          when Order =>
             if This.Next_Index >= This.Next_Add then
                This.Next_Index := Note_Index'First;
+               This.Trig_Next_Oct;
             else
                This.Next_Index := This.Next_Index + 1;
             end if;
@@ -151,9 +168,49 @@ package body Pico_Keys.Arpeggiator is
             This.Last_Note := This.Arp_Seq (This.Next_Index);
       end case;
 
-      This.Note_On (This.Last_Note);
-      This.Note_To_Turn_Off := This.Last_Note;
+      declare
+         Int_Key : Integer :=
+           Integer (This.Last_Note) + Integer (This.Current_Oct) * 12;
+
+         Int_Key_First : constant Integer := Integer (MIDI.MIDI_Key'First);
+         Int_Key_Last : constant Integer := Integer (MIDI.MIDI_Key'Last);
+      begin
+
+         if Int_Key not in Int_Key_First .. Int_Key_Last then
+            --  Octave shift is outside of key range, go back to original key
+            Int_Key := Integer (This.Last_Note);
+         end if;
+
+         This.Note_On (MIDI.MIDI_Key (Int_Key));
+         This.Note_To_Turn_Off := MIDI.MIDI_Key (Int_Key);
+      end;
+
    end Trigger;
+
+   -------------------
+   -- Trig_Next_Oct --
+   -------------------
+
+   procedure Trig_Next_Oct (This : in out Instance) is
+   begin
+      if This.Oct_Rng < 0 then
+         if This.Current_Oct > 0 or else This.Current_Oct <= This.Oct_Rng then
+            This.Current_Oct := 0;
+         else
+            This.Current_Oct := This.Current_Oct - 1;
+         end if;
+
+      elsif This.Oct_Rng > 0 then
+         if This.Current_Oct < 0 or else This.Current_Oct >= This.Oct_Rng then
+            This.Current_Oct := 0;
+         else
+            This.Current_Oct := This.Current_Oct + 1;
+         end if;
+
+      else
+         This.Current_Oct := 0;
+      end if;
+   end Trig_Next_Oct;
 
    -----------
    -- Clear --
@@ -198,5 +255,34 @@ package body Pico_Keys.Arpeggiator is
 
    function Mode (This : Instance) return Arp_Mode
    is (This.Current_Mode);
+
+   ------------------
+   -- Octave_Range --
+   ------------------
+
+   function Octave_Range (This : Instance) return Oct_Range
+   is (This.Oct_Rng);
+
+   -----------------------
+   -- Next_Octave_Range --
+   -----------------------
+
+   procedure Next_Octave_Range (This : in out Instance) is
+   begin
+      if This.Oct_Rng /= Oct_Range'Last then
+         This.Oct_Rng := This.Oct_Rng + 1;
+      end if;
+   end Next_Octave_Range;
+
+   -----------------------
+   -- Prev_Octave_Range --
+   -----------------------
+
+   procedure Prev_Octave_Range (This : in out Instance) is
+   begin
+      if This.Oct_Rng /= Oct_Range'First then
+         This.Oct_Rng := This.Oct_Rng - 1;
+      end if;
+   end Prev_Octave_Range;
 
  end Pico_Keys.Arpeggiator;
