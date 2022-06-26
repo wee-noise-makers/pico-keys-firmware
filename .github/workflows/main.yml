@@ -1,5 +1,9 @@
-name: Build and test
-on: [pull_request, push]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [created]
 
 jobs:
   linux-build:
@@ -11,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - uses: alire-project/setup-alire@v1
       with:
         toolchain: gprbuild${{ matrix.gprbuild_version }} gnat_native${{ matrix.gnat_version }} --disable-assistant
@@ -21,3 +25,31 @@ jobs:
     - run: cd synth_plugin_macro && make
 
     - run: alr build
+
+    - run: |
+          export CRATE_VERSION=$(alr show | grep Version | cut -d':' -f2 | xargs)
+          echo CRATE_VERSION=$CRATE_VERSION >> $GITHUB_ENV
+          echo UF2_FILENAME=pico_keys_firmware-${CRATE_VERSION}.uf2 >> $GITHUB_ENV
+
+    - run: git clone https://github.com/raspberrypi/pico-sdk.git
+
+    - run: cd pico-sdk/tools/elf2uf2 && cmake . && make
+
+    - run: ./pico-sdk/tools/elf2uf2/elf2uf2 bin/pico_keys_firmware ${{ env.UF2_FILENAME }}
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: elf-and-uf2
+        path: |
+          bin/pico_keys_firmware
+          ${{ env.UF2_FILENAME }}
+
+    - name: Upload release manifest
+      if: (github.event_name == 'release')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ${{ env.UF2_FILENAME}}
+        asset_name: ${{ env.UF2_FILENAME}}
