@@ -9,15 +9,15 @@ maintainers-logins = ["Fabien-Chouteau"]
 executables = ["pico_keys_firmware"]
 
 [[depends-on]]
-rp2040_hal = "~0.6.0"
+rp2040_hal = "~1.6.0"
 gnat_arm_elf = "^11"
-hal = "~0.3.0"
+hal = "~0.4.0"
 bbqueue = "~0.3.0"
-midi = "*"
+midi = "~0.1.0"
 
 [[pins]]
-rp2040_hal = { url='https://github.com/JeremyGrosser/rp2040_hal' }
-midi = { url="https://github.com/Fabien-Chouteau/MIDI" }
+# rp2040_hal = { url='https://github.com/JeremyGrosser/rp2040_hal' }
+# midi = { url="https://github.com/Fabien-Chouteau/MIDI" }
 hal =  { url="https://github.com/Fabien-Chouteau/hal" }
 
 [configuration.values]
