@@ -53,3 +53,4 @@ jobs:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: ${{ env.UF2_FILENAME}}
         asset_name: ${{ env.UF2_FILENAME}}
+        asset_content_type: application/octet-stream
