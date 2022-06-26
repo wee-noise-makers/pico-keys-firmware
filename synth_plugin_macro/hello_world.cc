@@ -347,8 +347,6 @@ int main(void) {
 
         }
         case 0b1011:{// Control change
-            int first_osc;
-            int last_osc;
 
             if (chan < NBR_OF_CHANs) {
                 switch (key) {
