@@ -3,7 +3,6 @@ on: [pull_request, push]
 
 jobs:
   linux-build:
-    name: Build and test on Linux
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -17,5 +16,8 @@ jobs:
       with:
         toolchain: gprbuild${{ matrix.gprbuild_version }} gnat_native${{ matrix.gnat_version }} --disable-assistant
 
-    - name: Alire build
-      run: alr build
+    - run: sudo apt install gcc-arm-none-eabi
+
+    - run: cd synth_plugin_macro && make
+
+    - run: alr build
