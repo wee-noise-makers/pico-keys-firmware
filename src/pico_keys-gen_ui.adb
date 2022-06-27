@@ -104,9 +104,9 @@ package body Pico_Keys.Gen_UI is
          --  Time Div LED
          if On_Time (Generators (Current_Gen).Division, Step) then
             if Generators (Current_Gen).Division in Div_4 .. Div_32 then
-               LEDS.Set_Hue (Btn_Time_Div, LEDs.Beat_Hue, LEDs.Fade);
+               LEDs.Set_Hue (Btn_Time_Div, LEDs.Beat_Hue, LEDs.Fade);
             else
-               LEDS.Set_Hue (Btn_Time_Div, LEDs.Triplet_Hue, LEDs.Fade);
+               LEDs.Set_Hue (Btn_Time_Div, LEDs.Triplet_Hue, LEDs.Fade);
             end if;
          end if;
 
@@ -119,7 +119,7 @@ package body Pico_Keys.Gen_UI is
                 when Swing_70  => (Step mod  3) = 0,
                 when Swing_75  => True)
          then
-            LEDS.Set_Hue (Btn_Time_Swing, LEDs.Beat_Hue);
+            LEDs.Set_Hue (Btn_Time_Swing, LEDs.Beat_Hue);
          end if;
 
          --  MIDI channel +/-
@@ -149,8 +149,8 @@ package body Pico_Keys.Gen_UI is
          end if;
 
          if Pico_Keys.On_Time (Pico_Keys.Div_4, Step) then
-            LEDS.Set_Hue (Btn_BPM_Plus, LEDs.Beat_Hue, LEDs.Fade);
-            LEDS.Set_Hue (Btn_BPM_Minus, LEDs.Beat_Hue, LEDs.Fade);
+            LEDs.Set_Hue (Btn_BPM_Plus, LEDs.Beat_Hue, LEDs.Fade);
+            LEDs.Set_Hue (Btn_BPM_Minus, LEDs.Beat_Hue, LEDs.Fade);
          end if;
 
          --  ARP Mode select
@@ -179,7 +179,7 @@ package body Pico_Keys.Gen_UI is
          end if;
 
          if Now <= Save_Blink_Until then
-            LEDS.Set_Hue (Btn_Save, Save_Blink_Hue, LEDs.Blink_Fast);
+            LEDs.Set_Hue (Btn_Save, Save_Blink_Hue, LEDs.Blink_Fast);
          end if;
 
          --  Clear
@@ -196,13 +196,13 @@ package body Pico_Keys.Gen_UI is
          case Generators (Current_Gen).Current_Mode is
          when Key =>
 
-            LEDS.Set_Hue (Btn_Meta_Mode, LEDs.Seq_Hue);
+            LEDs.Set_Hue (Btn_Meta_Mode, LEDs.Keyboard_Hue);
 
          when Seq =>
             LEDs.Set_Hue (Btn_Rest, LEDs.Seq_Hue);
             LEDs.Set_Hue (Btn_Tie, LEDs.Seq_Hue);
             LEDs.Set_Hue (Btn_Clear, LEDs.Seq_Hue);
-            LEDS.Set_Hue (Btn_Meta_Mode, LEDs.Arp_Hue);
+            LEDs.Set_Hue (Btn_Meta_Mode, LEDs.Seq_Hue);
 
             if Buttons.Falling (Btn_Rest) then
                Generators (Current_Gen).Add_Rest;
@@ -214,18 +214,18 @@ package body Pico_Keys.Gen_UI is
 
          when Arp =>
             LEDs.Set_Hue (Btn_Clear, LEDs.Arp_Hue);
-            LEDS.Set_Hue (Btn_Meta_Mode, LEDs.Keyboard_Hue);
+            LEDs.Set_Hue (Btn_Meta_Mode, LEDs.Arp_Hue);
 
             --  ARP Mode LED
             case Generators (Current_Gen).Arp_Mode is
                when Arpeggiator.Up =>
-                  LEDS.Set_Hue (Btn_Arp_Mode, LEDs.Red);
+                  LEDs.Set_Hue (Btn_Arp_Mode, LEDs.Red);
                when Arpeggiator.Down =>
-                  LEDS.Set_Hue (Btn_Arp_Mode, LEDs.Green);
+                  LEDs.Set_Hue (Btn_Arp_Mode, LEDs.Green);
                when Arpeggiator.Up_N_Down =>
-                  LEDS.Set_Hue (Btn_Arp_Mode, LEDs.Blue);
+                  LEDs.Set_Hue (Btn_Arp_Mode, LEDs.Blue);
                when Arpeggiator.Order =>
-                  LEDS.Set_Hue (Btn_Arp_Mode, LEDs.Violet);
+                  LEDs.Set_Hue (Btn_Arp_Mode, LEDs.Violet);
             end case;
 
             if Buttons.Falling (Btn_Arp_Oct_Minus) then
@@ -234,7 +234,7 @@ package body Pico_Keys.Gen_UI is
                Generators (Current_Gen).Next_Octave_Range;
             end if;
 
-            -- Oct range
+            --  Oct range
             case Generators (Current_Gen).Octave_Range is
                when -2 =>
                   LEDs.Set_Hue (Btn_Arp_Oct_Minus, LEDs.Arp_Hue, LEDs.Blink_Fast);
@@ -258,7 +258,7 @@ package body Pico_Keys.Gen_UI is
             Gen_Switch_Loop : for G in Gen_Id loop
                if Current_Gen /= G and Buttons.Falling (Gen_Btn (G)) then
                   Current_Gen := G;
-                  exit Gen_Switch_loop;
+                  exit Gen_Switch_Loop;
                end if;
             end loop Gen_Switch_Loop;
          end if;
