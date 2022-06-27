@@ -1,6 +1,7 @@
 with RP.PWM; use RP.PWM;
 with RP.GPIO; use RP.GPIO;
 with RP.DMA;
+with RP_Interrupts;
 
 with HAL; use HAL;
 
@@ -23,16 +24,15 @@ package body Pico_Keys.Audio is
    User_Handler : Audio_Handler := null
      with Atomic;
 
-   procedure DMA_IRQ0_Handler
-     with Export,
-     Convention => C,
-     External_Name => "isr_irq11";
+   procedure DMA_IRQ0_Handler (Id : RP_Interrupts.Interrupt_ID);
 
    ----------------------
    -- DMA_IRQ0_Handler --
    ----------------------
 
-   procedure DMA_IRQ0_Handler is
+   procedure DMA_IRQ0_Handler (Id : RP_Interrupts.Interrupt_ID) is
+      pragma Unreferenced (Id);
+
       use type System.Address;
 
       Buffer       : System.Address := System.Null_Address;
@@ -120,8 +120,11 @@ package body Pico_Keys.Audio is
          RP.DMA.Enable_IRQ (AUDIO_PWM_DMA, DMA_IRQ);
       end;
 
+      RP_Interrupts.Attach_Handler (Handler =>  DMA_IRQ0_Handler'Access,
+                                    Id =>  11,
+                                    Prio => System.Interrupt_Priority'First);
       --  Start the DMA cycle
-      DMA_IRQ0_Handler;
+      DMA_IRQ0_Handler (11);
    end Initialize;
 
 begin
