@@ -13,6 +13,11 @@ jobs:
         gnat_version: [^11]
         gprbuild_version: [^22]
     runs-on: ${{ matrix.os }}
+    env:
+      BBQUEUE_COMPILE_CHECKS: disabled
+      BBQUEUE_RUNTIME_CHECKS: disabled
+      BBQUEUE_STYLE_CHECKS: disabled
+      BBQUEUE_CONTRACTS: disabled
 
     steps:
     - uses: actions/checkout@v2
