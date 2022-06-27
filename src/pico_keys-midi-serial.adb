@@ -6,6 +6,7 @@ with RP2040_SVD.Interrupts;
 with RP.Device;
 with RP.UART;
 with RP.GPIO; use RP.GPIO;
+with RP_Interrupts;
 
 with BBqueue;         use BBqueue;
 with BBqueue.Buffers; use BBqueue.Buffers;
@@ -21,14 +22,14 @@ package body Pico_Keys.MIDI.Serial is
 
    Out_Grant : BBqueue.Buffers.Read_Grant;
 
-   procedure UART0_RX_Handler;
-   pragma Export (C, UART0_RX_Handler, "isr_irq20");
+   procedure UART0_RX_Handler (Id : RP_Interrupts.Interrupt_ID);
 
    ----------------------
    -- UART0_RX_Handler --
    ----------------------
 
-   procedure UART0_RX_Handler is
+   procedure UART0_RX_Handler (Id : RP_Interrupts.Interrupt_ID) is
+      pragma Unreferenced (Id);
    begin
 
       case UART.Receive_Status is
@@ -89,6 +90,10 @@ package body Pico_Keys.MIDI.Serial is
       UART.Enable_IRQ (RP.UART.Receive);
       UART.Set_FIFO_IRQ_Level (RX => RP.UART.Lvl_Eighth,
                                TX => RP.UART.Lvl_Eighth);
+
+      RP_Interrupts.Attach_Handler (UART0_RX_Handler'Access,
+                                    RP2040_SVD.Interrupts.UART0_Interrupt,
+                                    System.Interrupt_Priority'First);
       Cortex_M.NVIC.Enable_Interrupt (RP2040_SVD.Interrupts.UART0_Interrupt);
    end Initialize;
 
