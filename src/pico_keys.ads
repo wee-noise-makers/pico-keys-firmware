@@ -1,5 +1,3 @@
-with System;
-
 with RP.DMA;
 with RP.Clock;
 
@@ -78,9 +76,6 @@ package Pico_Keys is
    LED_PIO_DMA : constant RP.DMA.DMA_Channel_Id := 1;
    UART_TX_DMA : constant RP.DMA.DMA_Channel_Id := 2;
    AUDIO_PWM_DMA : constant RP.DMA.DMA_Channel_Id := 3;
-
-   procedure Last_Chance_Handler (Msg : System.Address; Line : Integer);
-   pragma Export (C, Last_Chance_Handler, "__gnat_last_chance_handler");
 
    XOSC_Frequency : RP.Clock.XOSC_Hertz := 12_000_000;
 

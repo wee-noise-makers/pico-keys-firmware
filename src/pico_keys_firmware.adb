@@ -16,6 +16,9 @@ with Pico_Keys.Synth_UI;
 with Pico_Keys.Synth_Plugin;
 with Pico_Keys.Save; use Pico_Keys.Save;
 
+with Pico_Keys.Last_Chance;
+pragma Unreferenced (Pico_Keys.Last_Chance);
+
 with RP.Timer; use RP.Timer;
 
 procedure Pico_Keys_Firmware is

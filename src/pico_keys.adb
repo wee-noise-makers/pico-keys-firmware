@@ -3,18 +3,6 @@ with RP.Device;
 
 package body Pico_Keys is
 
-   -------------------------
-   -- Last_Chance_Handler --
-   -------------------------
-
-   procedure Last_Chance_Handler (Msg : System.Address; Line : Integer) is
-      pragma Unreferenced (Msg, Line);
-   begin
-      loop
-         null;
-      end loop;
-   end Last_Chance_Handler;
-
    procedure ISR_Invalid;
    pragma Export (ASM, ISR_Invalid, "isr_invalid");
 
@@ -26,25 +14,18 @@ package body Pico_Keys is
 
    procedure ISR_Invalid is
    begin
-      loop
-         null;
-      end loop;
+      raise Program_Error;
    end ISR_Invalid;
 
    procedure ISR_Hardfault is
    begin
-      loop
-         null;
-      end loop;
+      raise Program_Error;
    end ISR_Hardfault;
 
    procedure ISR_Nmi is
    begin
-      loop
-         null;
-      end loop;
+      raise Program_Error;
    end ISR_Nmi;
-
 
 begin
    RP.Clock.Initialize (XOSC_Frequency);
