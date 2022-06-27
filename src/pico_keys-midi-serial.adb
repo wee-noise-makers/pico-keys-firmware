@@ -13,6 +13,8 @@ with BBqueue.Buffers; use BBqueue.Buffers;
 
 with Pico_Keys.MIDI.Input;
 
+with System;
+
 package body Pico_Keys.MIDI.Serial is
 
    UART           : RP.UART.UART_Port renames RP.Device.UART_0;
