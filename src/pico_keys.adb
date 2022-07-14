@@ -28,7 +28,8 @@ package body Pico_Keys is
    end ISR_Nmi;
 
 begin
-   RP.Clock.Initialize (XOSC_Frequency);
+   RP.Clock.Initialize (XOSC_Frequency,
+                        XOSC_Startup_Delay => 12_032 * 64);
    RP.Clock.Enable (RP.Clock.PERI);
    RP.Device.Timer.Enable;
    RP.GPIO.Enable;
