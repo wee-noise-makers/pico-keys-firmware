@@ -1,6 +1,6 @@
 name = "pico_keys_firmware"
 description = "Firmware for the PICO Keys MIDI keyboard"
-version = "0.1.0"
+version = "0.1.1"
 
 authors = ["Fabien Chouteau"]
 maintainers = ["Fabien Chouteau <fabien.chouteau@gmail.com>"]
